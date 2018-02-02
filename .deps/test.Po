@@ -1,0 +1,909 @@
+test.o: test.cc \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/oomph_definitions.h \
+  ../../oomph-lib-config.h \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/stdexcept \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/__config \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/exception \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/cstddef \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../lib/clang/8.0.0/include/stddef.h \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/type_traits \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/iosfwd \
+  /usr/include/wchar.h /usr/include/_types.h /usr/include/sys/_types.h \
+  /usr/include/sys/cdefs.h /usr/include/sys/_symbol_aliasing.h \
+  /usr/include/sys/_posix_availability.h /usr/include/machine/_types.h \
+  /usr/include/i386/_types.h /usr/include/sys/_pthread/_pthread_types.h \
+  /usr/include/Availability.h /usr/include/AvailabilityInternal.h \
+  /usr/include/sys/_types/_null.h /usr/include/sys/_types/_size_t.h \
+  /usr/include/sys/_types/_mbstate_t.h \
+  /usr/include/sys/_types/_ct_rune_t.h /usr/include/sys/_types/_rune_t.h \
+  /usr/include/sys/_types/_wchar_t.h \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../lib/clang/8.0.0/include/stdarg.h \
+  /usr/include/stdio.h /usr/include/sys/_types/_va_list.h \
+  /usr/include/sys/stdio.h /usr/include/sys/_types/_off_t.h \
+  /usr/include/sys/_types/_ssize_t.h /usr/include/time.h \
+  /usr/include/sys/_types/_clock_t.h /usr/include/sys/_types/_time_t.h \
+  /usr/include/sys/_types/_timespec.h /usr/include/_wctype.h \
+  /usr/include/sys/_types/_wint_t.h /usr/include/_types/_wctype_t.h \
+  /usr/include/ctype.h /usr/include/runetype.h \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/iostream \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/ios \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/__locale \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/string \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/cstring \
+  /usr/include/string.h /usr/include/sys/_types/_rsize_t.h \
+  /usr/include/sys/_types/_errno_t.h /usr/include/strings.h \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/cstdio \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/cwchar \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/cwctype \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/cctype \
+  /usr/include/wctype.h /usr/include/_types/_wctrans_t.h \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/algorithm \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/initializer_list \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/utility \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/__tuple \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/memory \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/typeinfo \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/cstdint \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../lib/clang/8.0.0/include/stdint.h \
+  /usr/include/stdint.h /usr/include/sys/_types/_int8_t.h \
+  /usr/include/sys/_types/_int16_t.h /usr/include/sys/_types/_int32_t.h \
+  /usr/include/sys/_types/_int64_t.h /usr/include/_types/_uint8_t.h \
+  /usr/include/_types/_uint16_t.h /usr/include/_types/_uint32_t.h \
+  /usr/include/_types/_uint64_t.h /usr/include/sys/_types/_intptr_t.h \
+  /usr/include/sys/_types/_uintptr_t.h /usr/include/_types/_intmax_t.h \
+  /usr/include/_types/_uintmax_t.h \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/new \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/__undef___deallocate \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/limits \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/__undef_min_max \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/iterator \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/__functional_base \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/__functional_base_03 \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/__debug \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/tuple \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/mutex \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/__mutex_base \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/chrono \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/ctime \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/ratio \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/climits \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../lib/clang/8.0.0/include/limits.h \
+  /usr/include/limits.h /usr/include/machine/limits.h \
+  /usr/include/i386/limits.h /usr/include/i386/_limits.h \
+  /usr/include/sys/syslimits.h \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/system_error \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/cerrno \
+  /usr/include/errno.h /usr/include/sys/errno.h /usr/include/pthread.h \
+  /usr/include/pthread/pthread_impl.h /usr/include/pthread/sched.h \
+  /usr/include/sys/_pthread/_pthread_attr_t.h \
+  /usr/include/sys/_pthread/_pthread_cond_t.h \
+  /usr/include/sys/_pthread/_pthread_condattr_t.h \
+  /usr/include/sys/_pthread/_pthread_key_t.h \
+  /usr/include/sys/_pthread/_pthread_mutex_t.h \
+  /usr/include/sys/_pthread/_pthread_mutexattr_t.h \
+  /usr/include/sys/_pthread/_pthread_once_t.h \
+  /usr/include/sys/_pthread/_pthread_rwlock_t.h \
+  /usr/include/sys/_pthread/_pthread_rwlockattr_t.h \
+  /usr/include/sys/_pthread/_pthread_t.h /usr/include/pthread/qos.h \
+  /usr/include/sys/qos.h /usr/include/sys/_types/_mach_port_t.h \
+  /usr/include/sys/_types/_sigset_t.h \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/functional \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/__functional_03 \
+  /usr/include/locale.h /usr/include/_locale.h /usr/include/xlocale.h \
+  /usr/include/_xlocale.h /usr/include/xlocale/_ctype.h \
+  /usr/include/xlocale/__wctype.h /usr/include/xlocale/_stdio.h \
+  /usr/include/xlocale/_string.h /usr/include/xlocale/_time.h \
+  /usr/include/xlocale/_wchar.h /usr/include/xlocale/_wctype.h \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/streambuf \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/istream \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/ostream \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/locale \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/cstdlib \
+  /usr/include/stdlib.h /usr/include/sys/wait.h \
+  /usr/include/sys/_types/_pid_t.h /usr/include/sys/_types/_id_t.h \
+  /usr/include/sys/signal.h /usr/include/sys/appleapiopts.h \
+  /usr/include/machine/signal.h /usr/include/i386/signal.h \
+  /usr/include/machine/_mcontext.h /usr/include/i386/_mcontext.h \
+  /usr/include/mach/i386/_structs.h \
+  /usr/include/sys/_types/_sigaltstack.h \
+  /usr/include/sys/_types/_ucontext.h /usr/include/sys/_types/_uid_t.h \
+  /usr/include/sys/resource.h /usr/include/sys/_types/_timeval.h \
+  /usr/include/machine/endian.h /usr/include/i386/endian.h \
+  /usr/include/sys/_endian.h /usr/include/libkern/_OSByteOrder.h \
+  /usr/include/libkern/i386/_OSByteOrder.h /usr/include/alloca.h \
+  /usr/include/machine/types.h /usr/include/i386/types.h \
+  /usr/include/sys/_types/_u_int8_t.h \
+  /usr/include/sys/_types/_u_int16_t.h \
+  /usr/include/sys/_types/_u_int32_t.h \
+  /usr/include/sys/_types/_u_int64_t.h /usr/include/sys/_types/_dev_t.h \
+  /usr/include/sys/_types/_mode_t.h /usr/include/xlocale/_stdlib.h \
+  /usr/include/nl_types.h /usr/include/sys/types.h \
+  /usr/include/sys/_types/_blkcnt_t.h \
+  /usr/include/sys/_types/_blksize_t.h /usr/include/sys/_types/_gid_t.h \
+  /usr/include/sys/_types/_in_addr_t.h \
+  /usr/include/sys/_types/_in_port_t.h /usr/include/sys/_types/_ino_t.h \
+  /usr/include/sys/_types/_ino64_t.h /usr/include/sys/_types/_key_t.h \
+  /usr/include/sys/_types/_nlink_t.h \
+  /usr/include/sys/_types/_useconds_t.h \
+  /usr/include/sys/_types/_suseconds_t.h \
+  /usr/include/sys/_types/_fd_def.h \
+  /usr/include/sys/_types/_fd_setsize.h \
+  /usr/include/sys/_types/_fd_set.h /usr/include/sys/_types/_fd_clr.h \
+  /usr/include/sys/_types/_fd_zero.h /usr/include/sys/_types/_fd_isset.h \
+  /usr/include/sys/_types/_fd_copy.h \
+  /usr/include/sys/_types/_fsblkcnt_t.h \
+  /usr/include/sys/_types/_fsfilcnt_t.h /usr/include/_types/_nl_item.h \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/bitset \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/__bit_reference \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/vector \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/__split_buffer \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/Qelements.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/Vector.h \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/sstream \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/cmath \
+  /usr/include/math.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/shape.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/matrices.h \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/iomanip \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/oomph_utilities.h \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/fstream \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/map \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/__tree \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/complex \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/communicator.h \
+  /usr/include/cxxabi.h /usr/include/__cxxabi_config.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/linear_algebra_distribution.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/double_vector.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/orthpoly.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/integral.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/timesteppers.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/nodes.h \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/set \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/elements.h \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/deque \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/list \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/geom_objects.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/macro_element.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/quadtree.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/tree.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/map_matrix.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/octree.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/Qelement_face_coordinate_translation_schemes.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/Qspectral_elements.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/assembly_handler.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/linear_solver.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/double_vector_with_halo.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/periodic_orbit_handler.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/problem.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/generalised_timesteppers.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/explicit_timesteppers.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/refineable_line_spectral_element.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/mesh.h \
+  /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../lib/clang/8.0.0/include/float.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/refineable_elements.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/algebraic_elements.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/domain.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/element_with_moving_nodes.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/macro_element_node_update_element.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/refineable_line_element.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/binary_tree.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/../meshes/one_d_mesh.template.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/../meshes/../generic/line_mesh.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/../meshes/../generic/refineable_line_mesh.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/refineable_mesh.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/tree.template.cc \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/error_estimator.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/refineable_mesh.template.cc \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/missing_masters.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/mesh_as_geometric_object.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/element_with_external_element.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/missing_masters.template.cc \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/../meshes/one_d_mesh.template.cc \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/frontal_solver.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/spines.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/complex_matrices.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/displacement_control_element.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/hermite_elements.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/elastic_problems.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/hijacked_elements.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/stored_shape_function_elements.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/quad_mesh.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/dg_elements.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/fsi.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/face_element_as_geometric_object.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/multi_domain.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/multi_domain.template.cc \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/refineable_quad_element.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/hp_refineable_elements.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/refineable_brick_element.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/refineable_quad_spectral_element.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/refineable_brick_spectral_element.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/refineable_quad_mesh.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/pseudosolid_node_update_elements.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/brick_mesh.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/refineable_brick_mesh.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/eigen_solver.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/Telements.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/triangle_scaffold_mesh.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/triangle_mesh.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/unstructured_two_d_mesh_geometry_base.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/geompack_scaffold_mesh.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/tetgen_scaffold_mesh.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/oomph_tetgen/tetgen.h \
+  /usr/include/assert.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/pseudo_buckling_ring.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/simple_cubic_scaffold_tet_mesh.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/tet_mesh.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/partitioning.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/double_multi_vector.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/iterative_linear_solver.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/preconditioner.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/general_purpose_preconditioners.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/block_preconditioner.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/vector_matrix.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/SuperLU_preconditioner.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/matrix_vector_product.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/general_purpose_block_preconditioners.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/preconditioner_array.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/projection.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/line_visualiser.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/Subparametric_Telements.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/sum_of_matrices.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/implicit_midpoint_rule.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/trapezoid_rule.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/pml_meshes.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/../meshes/rectangular_quadmesh.template.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/../meshes/rectangular_quadmesh.template.cc \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/pml_mapping_functions.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/face_mesh_project.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/generalised_newtonian_constitutive_models.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/geometric_multigrid.h \
+  ../../config.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/stacktrace.h \
+  /usr/include/execinfo.h \
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/meshes/one_d_mesh.h
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/oomph_definitions.h:
+
+../../oomph-lib-config.h:
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/stdexcept:
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/__config:
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/exception:
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/cstddef:
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../lib/clang/8.0.0/include/stddef.h:
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/type_traits:
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/iosfwd:
+
+/usr/include/wchar.h:
+
+/usr/include/_types.h:
+
+/usr/include/sys/_types.h:
+
+/usr/include/sys/cdefs.h:
+
+/usr/include/sys/_symbol_aliasing.h:
+
+/usr/include/sys/_posix_availability.h:
+
+/usr/include/machine/_types.h:
+
+/usr/include/i386/_types.h:
+
+/usr/include/sys/_pthread/_pthread_types.h:
+
+/usr/include/Availability.h:
+
+/usr/include/AvailabilityInternal.h:
+
+/usr/include/sys/_types/_null.h:
+
+/usr/include/sys/_types/_size_t.h:
+
+/usr/include/sys/_types/_mbstate_t.h:
+
+/usr/include/sys/_types/_ct_rune_t.h:
+
+/usr/include/sys/_types/_rune_t.h:
+
+/usr/include/sys/_types/_wchar_t.h:
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../lib/clang/8.0.0/include/stdarg.h:
+
+/usr/include/stdio.h:
+
+/usr/include/sys/_types/_va_list.h:
+
+/usr/include/sys/stdio.h:
+
+/usr/include/sys/_types/_off_t.h:
+
+/usr/include/sys/_types/_ssize_t.h:
+
+/usr/include/time.h:
+
+/usr/include/sys/_types/_clock_t.h:
+
+/usr/include/sys/_types/_time_t.h:
+
+/usr/include/sys/_types/_timespec.h:
+
+/usr/include/_wctype.h:
+
+/usr/include/sys/_types/_wint_t.h:
+
+/usr/include/_types/_wctype_t.h:
+
+/usr/include/ctype.h:
+
+/usr/include/runetype.h:
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/iostream:
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/ios:
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/__locale:
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/string:
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/cstring:
+
+/usr/include/string.h:
+
+/usr/include/sys/_types/_rsize_t.h:
+
+/usr/include/sys/_types/_errno_t.h:
+
+/usr/include/strings.h:
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/cstdio:
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/cwchar:
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/cwctype:
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/cctype:
+
+/usr/include/wctype.h:
+
+/usr/include/_types/_wctrans_t.h:
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/algorithm:
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/initializer_list:
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/utility:
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/__tuple:
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/memory:
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/typeinfo:
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/cstdint:
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../lib/clang/8.0.0/include/stdint.h:
+
+/usr/include/stdint.h:
+
+/usr/include/sys/_types/_int8_t.h:
+
+/usr/include/sys/_types/_int16_t.h:
+
+/usr/include/sys/_types/_int32_t.h:
+
+/usr/include/sys/_types/_int64_t.h:
+
+/usr/include/_types/_uint8_t.h:
+
+/usr/include/_types/_uint16_t.h:
+
+/usr/include/_types/_uint32_t.h:
+
+/usr/include/_types/_uint64_t.h:
+
+/usr/include/sys/_types/_intptr_t.h:
+
+/usr/include/sys/_types/_uintptr_t.h:
+
+/usr/include/_types/_intmax_t.h:
+
+/usr/include/_types/_uintmax_t.h:
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/new:
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/__undef___deallocate:
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/limits:
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/__undef_min_max:
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/iterator:
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/__functional_base:
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/__functional_base_03:
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/__debug:
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/tuple:
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/mutex:
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/__mutex_base:
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/chrono:
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/ctime:
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/ratio:
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/climits:
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../lib/clang/8.0.0/include/limits.h:
+
+/usr/include/limits.h:
+
+/usr/include/machine/limits.h:
+
+/usr/include/i386/limits.h:
+
+/usr/include/i386/_limits.h:
+
+/usr/include/sys/syslimits.h:
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/system_error:
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/cerrno:
+
+/usr/include/errno.h:
+
+/usr/include/sys/errno.h:
+
+/usr/include/pthread.h:
+
+/usr/include/pthread/pthread_impl.h:
+
+/usr/include/pthread/sched.h:
+
+/usr/include/sys/_pthread/_pthread_attr_t.h:
+
+/usr/include/sys/_pthread/_pthread_cond_t.h:
+
+/usr/include/sys/_pthread/_pthread_condattr_t.h:
+
+/usr/include/sys/_pthread/_pthread_key_t.h:
+
+/usr/include/sys/_pthread/_pthread_mutex_t.h:
+
+/usr/include/sys/_pthread/_pthread_mutexattr_t.h:
+
+/usr/include/sys/_pthread/_pthread_once_t.h:
+
+/usr/include/sys/_pthread/_pthread_rwlock_t.h:
+
+/usr/include/sys/_pthread/_pthread_rwlockattr_t.h:
+
+/usr/include/sys/_pthread/_pthread_t.h:
+
+/usr/include/pthread/qos.h:
+
+/usr/include/sys/qos.h:
+
+/usr/include/sys/_types/_mach_port_t.h:
+
+/usr/include/sys/_types/_sigset_t.h:
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/functional:
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/__functional_03:
+
+/usr/include/locale.h:
+
+/usr/include/_locale.h:
+
+/usr/include/xlocale.h:
+
+/usr/include/_xlocale.h:
+
+/usr/include/xlocale/_ctype.h:
+
+/usr/include/xlocale/__wctype.h:
+
+/usr/include/xlocale/_stdio.h:
+
+/usr/include/xlocale/_string.h:
+
+/usr/include/xlocale/_time.h:
+
+/usr/include/xlocale/_wchar.h:
+
+/usr/include/xlocale/_wctype.h:
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/streambuf:
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/istream:
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/ostream:
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/locale:
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/cstdlib:
+
+/usr/include/stdlib.h:
+
+/usr/include/sys/wait.h:
+
+/usr/include/sys/_types/_pid_t.h:
+
+/usr/include/sys/_types/_id_t.h:
+
+/usr/include/sys/signal.h:
+
+/usr/include/sys/appleapiopts.h:
+
+/usr/include/machine/signal.h:
+
+/usr/include/i386/signal.h:
+
+/usr/include/machine/_mcontext.h:
+
+/usr/include/i386/_mcontext.h:
+
+/usr/include/mach/i386/_structs.h:
+
+/usr/include/sys/_types/_sigaltstack.h:
+
+/usr/include/sys/_types/_ucontext.h:
+
+/usr/include/sys/_types/_uid_t.h:
+
+/usr/include/sys/resource.h:
+
+/usr/include/sys/_types/_timeval.h:
+
+/usr/include/machine/endian.h:
+
+/usr/include/i386/endian.h:
+
+/usr/include/sys/_endian.h:
+
+/usr/include/libkern/_OSByteOrder.h:
+
+/usr/include/libkern/i386/_OSByteOrder.h:
+
+/usr/include/alloca.h:
+
+/usr/include/machine/types.h:
+
+/usr/include/i386/types.h:
+
+/usr/include/sys/_types/_u_int8_t.h:
+
+/usr/include/sys/_types/_u_int16_t.h:
+
+/usr/include/sys/_types/_u_int32_t.h:
+
+/usr/include/sys/_types/_u_int64_t.h:
+
+/usr/include/sys/_types/_dev_t.h:
+
+/usr/include/sys/_types/_mode_t.h:
+
+/usr/include/xlocale/_stdlib.h:
+
+/usr/include/nl_types.h:
+
+/usr/include/sys/types.h:
+
+/usr/include/sys/_types/_blkcnt_t.h:
+
+/usr/include/sys/_types/_blksize_t.h:
+
+/usr/include/sys/_types/_gid_t.h:
+
+/usr/include/sys/_types/_in_addr_t.h:
+
+/usr/include/sys/_types/_in_port_t.h:
+
+/usr/include/sys/_types/_ino_t.h:
+
+/usr/include/sys/_types/_ino64_t.h:
+
+/usr/include/sys/_types/_key_t.h:
+
+/usr/include/sys/_types/_nlink_t.h:
+
+/usr/include/sys/_types/_useconds_t.h:
+
+/usr/include/sys/_types/_suseconds_t.h:
+
+/usr/include/sys/_types/_fd_def.h:
+
+/usr/include/sys/_types/_fd_setsize.h:
+
+/usr/include/sys/_types/_fd_set.h:
+
+/usr/include/sys/_types/_fd_clr.h:
+
+/usr/include/sys/_types/_fd_zero.h:
+
+/usr/include/sys/_types/_fd_isset.h:
+
+/usr/include/sys/_types/_fd_copy.h:
+
+/usr/include/sys/_types/_fsblkcnt_t.h:
+
+/usr/include/sys/_types/_fsfilcnt_t.h:
+
+/usr/include/_types/_nl_item.h:
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/bitset:
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/__bit_reference:
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/vector:
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/__split_buffer:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/Qelements.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/Vector.h:
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/sstream:
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/cmath:
+
+/usr/include/math.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/shape.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/matrices.h:
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/iomanip:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/oomph_utilities.h:
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/fstream:
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/map:
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/__tree:
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/complex:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/communicator.h:
+
+/usr/include/cxxabi.h:
+
+/usr/include/__cxxabi_config.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/linear_algebra_distribution.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/double_vector.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/orthpoly.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/integral.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/timesteppers.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/nodes.h:
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/set:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/elements.h:
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/deque:
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1/list:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/geom_objects.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/macro_element.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/quadtree.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/tree.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/map_matrix.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/octree.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/Qelement_face_coordinate_translation_schemes.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/Qspectral_elements.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/assembly_handler.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/linear_solver.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/double_vector_with_halo.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/periodic_orbit_handler.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/problem.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/generalised_timesteppers.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/explicit_timesteppers.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/refineable_line_spectral_element.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/mesh.h:
+
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../lib/clang/8.0.0/include/float.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/refineable_elements.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/algebraic_elements.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/domain.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/element_with_moving_nodes.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/macro_element_node_update_element.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/refineable_line_element.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/binary_tree.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/../meshes/one_d_mesh.template.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/../meshes/../generic/line_mesh.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/../meshes/../generic/refineable_line_mesh.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/refineable_mesh.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/tree.template.cc:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/error_estimator.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/refineable_mesh.template.cc:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/missing_masters.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/mesh_as_geometric_object.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/element_with_external_element.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/missing_masters.template.cc:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/../meshes/one_d_mesh.template.cc:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/frontal_solver.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/spines.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/complex_matrices.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/displacement_control_element.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/hermite_elements.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/elastic_problems.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/hijacked_elements.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/stored_shape_function_elements.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/quad_mesh.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/dg_elements.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/fsi.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/face_element_as_geometric_object.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/multi_domain.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/multi_domain.template.cc:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/refineable_quad_element.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/hp_refineable_elements.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/refineable_brick_element.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/refineable_quad_spectral_element.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/refineable_brick_spectral_element.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/refineable_quad_mesh.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/pseudosolid_node_update_elements.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/brick_mesh.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/refineable_brick_mesh.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/eigen_solver.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/Telements.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/triangle_scaffold_mesh.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/triangle_mesh.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/unstructured_two_d_mesh_geometry_base.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/geompack_scaffold_mesh.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/tetgen_scaffold_mesh.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/oomph_tetgen/tetgen.h:
+
+/usr/include/assert.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/pseudo_buckling_ring.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/simple_cubic_scaffold_tet_mesh.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/tet_mesh.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/partitioning.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/double_multi_vector.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/iterative_linear_solver.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/preconditioner.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/general_purpose_preconditioners.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/block_preconditioner.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/vector_matrix.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/SuperLU_preconditioner.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/matrix_vector_product.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/general_purpose_block_preconditioners.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/preconditioner_array.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/projection.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/line_visualiser.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/Subparametric_Telements.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/sum_of_matrices.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/implicit_midpoint_rule.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/trapezoid_rule.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/pml_meshes.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/../meshes/rectangular_quadmesh.template.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/../meshes/rectangular_quadmesh.template.cc:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/pml_mapping_functions.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/face_mesh_project.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/generalised_newtonian_constitutive_models.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/geometric_multigrid.h:
+
+../../config.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/stacktrace.h:
+
+/usr/include/execinfo.h:
+
+/Users/hollybarker/Documents/oomphlib/trunk/build/include/meshes/one_d_mesh.h:
