@@ -211,7 +211,7 @@ public:
  /// broken virtual function in base class.
  unsigned nscalar_paraview() const
   {
-   return NREAGENT;
+   return NREAGENT+DIM;
   }
 
  /// \short Write values of the i-th scalar field at the plot points. Needs 
@@ -220,6 +220,56 @@ public:
                             const unsigned& i,
                             const unsigned& nplot) const
   {
+   //Vector of local coordinates
+   Vector<double> s(DIM);
+
+   // Loop over plot points
+   unsigned num_plot_points=nplot_points(nplot);
+   for (unsigned iplot=0;iplot<num_plot_points;iplot++)
+   {
+    // Get local coordinates of plot point
+    get_s_plot(iplot,nplot,s);
+   
+    // Get Eulerian coordinate of plot point
+    Vector<double> x(DIM);
+    interpolated_x(s,x);
+
+    // If we're outputting one of the concentrations(?)
+    if (i<NREAGENT)
+    {
+     outfile << interpolated_c_adv_diff_react(s,i) << std::endl;
+    }
+    // If we're outputting the wind
+    else if (i<NREAGENT+DIM)
+    {
+     // Get the wind
+     Vector<double> wind(DIM);
+       
+     // Dummy integration point needed
+     unsigned ipt=0;
+
+     // Get the wind at this integration point
+     get_wind_adv_diff_react(ipt,s,x,wind);
+
+     // Output the wind
+     outfile << wind[i-NREAGENT] << std::endl;
+    }
+    else
+    {
+     throw OomphLibError("Don't have this many fields...",
+			 OOMPH_EXCEPTION_LOCATION,
+			 OOMPH_CURRENT_FUNCTION);
+    }
+   }
+  }
+ 
+/*
+ /// \short Write values of the i-th scalar field at the plot points. Needs 
+ /// to be implemented for each new specific element type.
+ void scalar_value_fct_paraview(std::ofstream& outfile,
+				const unsigned& i,
+				const unsigned& nplot) const
+ {
    //Vector of local coordinates
    Vector<double> s(DIM);
 
@@ -237,11 +287,13 @@ public:
 
      //Vector of local coordinates
      Vector<double> s(DIM);
-
  
-     // Tecplot header info
-     outfile << tecplot_zone_string(nplot);
- 
+     // Exact solution (concentrations) vector
+     Vector<double> exact_c(NREAGENT,0.0);
+    
+     // Exact solution (wind) vector
+     Vector<double> exact_w(DIM,0.0);
+    
      // Loop over plot points
      unsigned num_plot_points=nplot_points(nplot);
      for (unsigned iplot=0;iplot<num_plot_points;iplot++)
@@ -252,40 +304,34 @@ public:
       // Get Eulerian coordinate of plot point
       Vector<double> x(DIM);
       interpolated_x(s,x);
-   
-      for(unsigned i=0;i<DIM;i++) 
-      {
-       outfile << x[i] << " ";
-      }
-      for(unsigned i=0;i<NREAGENT;i++)
-      {
-       outfile << interpolated_c_adv_diff_react(s,i) << " ";
-      }
 
-      // Get the wind
-      Vector<double> wind(DIM);
-      // Dummy integration point needed
-      unsigned ipt=0;
-      get_wind_adv_diff_react(ipt,s,x,wind);
-      for(unsigned i=0;i<DIM;i++) 
+      // Use the elements timestepper to get the time
+      double t=time_stepper_pt()->time_pt()->time();
+      
+      // Get exact solution at this point
+      (*exact_soln_pt)(t,x,exact_c,exact_w);
+      
+      // If we're outputting one of the concentrations(?)
+      if (i<NREAGENT)
       {
-       outfile << wind[i] << " ";
+       outfile << exact_c[i] << std::endl;
       }
-      outfile  << std::endl;
+      // If we're outputting the wind
+      else if (i<NREAGENT+DIM)
+      {
+       // Output the wind
+       outfile << exact_w[i-NREAGENT] << std::endl;
+      }
+      else
+      {
+       throw OomphLibError("Don't have this many fields...",
+			   OOMPH_EXCEPTION_LOCATION,
+			   OOMPH_CURRENT_FUNCTION);
+      }
      }
     }
   }
- 
- /// Output with default number of plot points
- void output_paraview(std::ostream &outfile) 
-  {
-   unsigned nplot=5;
-   output_paraview(outfile,nplot);
-  }
-
- /// \short Output FE representation of soln: x,y,u or x,y,z,u at 
- /// nplot^DIM plot points
- void output_paraview(std::ostream &outfile, const unsigned &nplot);
+*/
 
 
  //This function with these input parameter types does not exist for paraview
@@ -301,12 +347,13 @@ public:
  /// n_plot^DIM plot points
  void output(FILE* file_pt, const unsigned &n_plot);
 */
-
+/*
  /// Output exact soln: x,y,u_exact or x,y,z,u_exact at nplot^DIM plot points
- void output_fct_paraview(std::ostream &outfile, const unsigned &nplot, 
-                 FiniteElement::SteadyExactSolutionFctPt 
-                 exact_soln_pt);
-
+ void output_fct_paraview(std::ostream &outfile,
+			  const unsigned &nplot, 
+			  FiniteElement::SteadyExactSolutionFctPt 
+			  exact_soln_pt);
+*/
   //This function with these input parameter types does not exist for paraview
  //vtu type outputs
  /*
@@ -779,12 +826,13 @@ template <unsigned NREAGENT, unsigned DIM, unsigned NNODE_1D>
  /// \short Output function:  
  ///  x,y,u   or    x,y,z,u
  void output(std::ostream &outfile)
-  {AdvectionDiffusionReactionEquations<NREAGENT,DIM>::output_paraview(outfile);}
- 
+  {AdvectionDiffusionReactionEquations<NREAGENT,DIM>::output(outfile);}
+  /*
  /// \short Output function:  
  ///  x,y,u   or    x,y,z,u at n_plot^DIM plot points
  void output_paraview(std::ostream &outfile, const unsigned &n_plot)
   {AdvectionDiffusionReactionEquations<NREAGENT,DIM>::output_paraview(outfile,n_plot);}
+  */
 //
  //This function with these input parameter types does not exist for paraview
  //vtu type outputs
@@ -803,6 +851,7 @@ template <unsigned NREAGENT, unsigned DIM, unsigned NNODE_1D>
    AdvectionDiffusionReactionEquations<NREAGENT,DIM>::output(file_pt,n_plot);
   }
 */
+  /*
  /// \short Output function for an exact solution:
  ///  x,y,u_exact   or    x,y,z,u_exact at n_plot^DIM plot points
  void output_fct(std::ostream &outfile, const unsigned &n_plot,
@@ -810,8 +859,9 @@ template <unsigned NREAGENT, unsigned DIM, unsigned NNODE_1D>
                  exact_soln_pt)
   {
    AdvectionDiffusionReactionEquations<NREAGENT,DIM>::
-    output_fct_paraview(outfile,n_plot,exact_soln_pt);}
-
+    output_fct_paraview(outfile,n_plot,exact_soln_pt);
+  }
+  */
 
  //This function with these input parameter types does not exist for paraview
  //vtu type outputs
@@ -1106,29 +1156,6 @@ fill_in_generic_residual_contribution_adv_diff_react(
        //Get the value at the node
        const double c_value = raw_nodal_value(l,c_nodal_index[r]);
 
-
-
-
-
-
-
-
-
-
-
-       //HOLLY NEED C_NODAL_INDEX IN THE OTHER FUNCTION
-
-
-
-
-
-
-
-
-
-
-
-       
        //Calculate the interpolated value
        interpolated_c[r] += c_value*psi(l);
        dcdt[r] += dc_dt_adv_diff_react(l,r)*psi(l);
@@ -1362,26 +1389,21 @@ integrate_reagents(Vector<double> &C) const
 
 }
 
-
+/*
 //======================================================================
-/// \short Output function:
-///
-///   x,y,u,w_x,w_y   or    x,y,z,u,w_x,w_y,w_z
-///
-/// nplot points in each coordinate direction
+ /// \short Write values of the i-th scalar field at the plot points. Needs 
+ /// to be implemented for each new specific element type.
 //======================================================================
 template <unsigned NREAGENT, unsigned DIM>
 void  AdvectionDiffusionReactionEquations<NREAGENT,DIM>::
-output_paraview(std::ostream &outfile, const unsigned &nplot)
-//Holly- should this have _paraview?
+scalar_value_paraview(std::ofstream &outfile,
+		      const unsigned& i,
+		      const unsigned &nplot) const
 { 
  //Vector of local coordinates
  Vector<double> s(DIM);
 
  std::cout<<"plotting in paraview format!!!"<<std::endl;
- 
- // Tecplot header info
- outfile << tecplot_zone_string(nplot);
  
  // Loop over plot points
  unsigned num_plot_points=nplot_points(nplot);
@@ -1389,15 +1411,7 @@ output_paraview(std::ostream &outfile, const unsigned &nplot)
   {
    // Get local coordinates of plot point
    get_s_plot(iplot,nplot,s);
-   
-   // Get Eulerian coordinate of plot point
-   Vector<double> x(DIM);
-   interpolated_x(s,x);
-   
-   for(unsigned i=0;i<DIM;i++) 
-   {
-    outfile << x[i] << "      ";
-   }
+
    //Get the nodal index at which the unknown is stored
    unsigned c_nodal_index[NREAGENT];
    Vector<double> interpolated_c(NREAGENT);
@@ -1435,10 +1449,9 @@ output_paraview(std::ostream &outfile, const unsigned &nplot)
    
   }
 
- // Write tecplot footer (e.g. FE connectivity lists)
- write_tecplot_zone_footer(outfile,nplot);
 
 }
+*/
 
  //This function with these input parameter types does not exist for paraview
  //vtu type outputs
@@ -1485,7 +1498,7 @@ output(FILE* file_pt, const unsigned &nplot)
 }
 
 */
-
+ /*
 //======================================================================
  /// \short  Output exact solution
  /// 
@@ -1499,7 +1512,6 @@ void AdvectionDiffusionReactionEquations<NREAGENT,DIM>::
 output_fct_paraview(std::ostream &outfile, 
            const unsigned &nplot, 
            FiniteElement::SteadyExactSolutionFctPt exact_soln_pt)
-// Holly- should this have _paraview?
 {
  
  //Vector of local coordinates
@@ -1540,7 +1552,7 @@ output_fct_paraview(std::ostream &outfile,
  write_tecplot_zone_footer(outfile,nplot);
  
 }
-
+ */
 //======================================================================
  /// \short Validate against exact solution
  /// 
@@ -1716,6 +1728,13 @@ namespace GlobalVariables
  {
   dRdC(0,0) = 1.0;
   }*/
+
+ void get_exact_u(const double& t,
+		  const Vector<double>& x,
+		  Vector<double>& u)
+ {
+  // Calculate the solution here...
+ }
  
 }
 //======start_of_problem_class============================================
@@ -1755,10 +1774,10 @@ RefineableOneDAdvectionDiffusionReactionProblem<ELEMENT>::
 RefineableOneDAdvectionDiffusionReactionProblem()
 {
  //Allocate the timestepper (second order implicit)
- add_time_stepper_pt(new BDF<2>);
+ add_time_stepper_pt(new BDF<4>);
  // Set up the mesh
  // Number of elements initially
- const unsigned n = 16; //2;
+ const unsigned n = 500; //2;
  // Domain length
  const double length = 1.0;
  // Build and assign the refineable mesh, need to pass in number of
@@ -1821,10 +1840,13 @@ template<class ELEMENT>
 void RefineableOneDAdvectionDiffusionReactionProblem<ELEMENT>::
 set_initial_condition()
 {
+ //Holly - Just need one spot
+ /*
  //Set the number of hot spots
  const unsigned n_spot = 1;
+ */
  //Set the centre of the hot spot
- const double centre_x[n_spot] = {0.5};
+ const double centre_x = 0.5;
  //Set the initial concentrations of the reagent
  unsigned n_node = mesh_pt()->nnode();
  //Loop over the nodes
@@ -1841,16 +1863,16 @@ set_initial_condition()
 
    //Initial condition 1 reagent hot spot
    double spot = 0.0;
-   for (unsigned s=0; s<n_spot; s++)
-    {
-     //Find the square distance from the centre of the
-     //hot spot
-     double r2 = (x - centre_x[s])*(x - centre_x[s]);
-     //Add an exponential hump to the value of the spot variable
-     //The "10" in the exponential sets the steepness of the spot
-     spot += 2.0*exp(-1000.0*r2);
-     }
-   nod_pt->set_value(0,spot);
+   //Find the square distance from the centre of the
+   //hot spot
+   double r2 = (x - centre_x)*(x - centre_x);
+   //Add an exponential hump to the value of the spot variable
+   //The "10" in the exponential sets the steepness of the spot
+   spot += 2.0*exp(-1000.0*r2)-1;
+   //Set the intial condition to bea thin exponential spot with
+   // finite support
+   if (spot>0) nod_pt->set_value(0,spot);
+   else nod_pt->set_value(0,0.0);
   }
  //Document the initial solution
  ofstream filename("initial.vtu");
@@ -1884,7 +1906,7 @@ void RefineableOneDAdvectionDiffusionReactionProblem<ELEMENT>::timestep(
  {
   unsigned i=0;
   char file1[100];
-  sprintf(file1,"step%i.vtu",i+1);
+  sprintf(file1,"RESLT/step%i.vtu",i+1);
   ofstream out1(file1);
   mesh_pt()->output_paraview(out1,5);
   out1.close();
@@ -1900,7 +1922,7 @@ void RefineableOneDAdvectionDiffusionReactionProblem<ELEMENT>::timestep(
    unsteady_newton_solve(dt,max_adapt,first);
    //Output the result
    char file1[100];
-   sprintf(file1,"step%i.vtu",i+1);
+   sprintf(file1,"RESLT/step%i.vtu",i+1);
    ofstream out1(file1);
    mesh_pt()->output_paraview(out1,5);
    out1.close();
@@ -1919,9 +1941,9 @@ int main()
  //GlobalVariables::A = -0.4;
  GlobalVariables::Tau[0]=1.0;
  GlobalVariables::D[0]=1.0;
- //Set the (largeish) timestep
- //Holly - timestep is pretty big
- double dt = 0.01;
+ //Set the timestep
+ double dt = 0.0001;
+ unsigned nstep=1000;
  //Set up the problem
  //------------------
  // DREIGIAU: There's an inherent problem with the 1D elements. Doesn't
@@ -1934,5 +1956,5 @@ int main()
  //Take four levels of uniform refinement to start things off
  //for(unsigned i=0;i<4;i++) { problem.refine_uniformly(); }
  //Now timestep the problem
- problem.timestep(dt,15);
+ problem.timestep(dt,nstep);
 } // End of main
