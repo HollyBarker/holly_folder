@@ -1779,7 +1779,7 @@ RefineableOneDAdvectionDiffusionReactionProblem()
  // Number of elements initially
  const unsigned n = 500; //2;
  // Domain length
- const double length = 1.0;
+ const double length = 1;
  // Build and assign the refineable mesh, need to pass in number of
  // elements, length and the timestepper
  Problem::mesh_pt() =
@@ -1868,11 +1868,10 @@ set_initial_condition()
    double r2 = (x - centre_x)*(x - centre_x);
    //Add an exponential hump to the value of the spot variable
    //The "10" in the exponential sets the steepness of the spot
-   spot += 2.0*exp(-1000.0*r2)-1;
+   spot += 2.0*exp(-10.0*r2)-1;
    //Set the intial condition to bea thin exponential spot with
    // finite support
-   if (spot>0) nod_pt->set_value(0,spot);
-   else nod_pt->set_value(0,0.0);
+   nod_pt->set_value(0,spot);
   }
  //Document the initial solution
  ofstream filename("initial.vtu");
@@ -1943,7 +1942,7 @@ int main()
  GlobalVariables::D[0]=1.0;
  //Set the timestep
  double dt = 0.0001;
- unsigned nstep=1000;
+ unsigned nstep=10;
  //Set up the problem
  //------------------
  // DREIGIAU: There's an inherent problem with the 1D elements. Doesn't
