@@ -47,10 +47,6 @@
   #include <oomph-lib-config.h>
 #endif
 
-//OOMPH-LIB headers
-//#include "/Users/hollybarker/Documents/oomphlib/trunk/src/generic/nodes.h"
-//#include "/Users/hollybarker/Documents/oomphlib/trunk/src/generic/Qelements.h"
-//#include "/Users/hollybarker/Documents/oomphlib/trunk/src/generic/oomph_utilities.h"
 
 namespace oomph
 {
@@ -93,12 +89,16 @@ public:
                                                      const Vector<double>& x,
                                                      Vector<double>& wind);
 
+  /// \short Function pointer to F terms
+ typedef void (*AdvectionDiffusionReactionFFctPt)(
+  const Vector<double> &c, const DenseMatrix<double> &dcdx, Vector<double> &F);
+
 
  /// \short Constructor: Initialise the Source_fct_pt, Wind_fct_pt,
  /// Reaction_fct_pt to null and initialise the dimensionless 
  /// timescale and diffusion ratios
  AdvectionDiffusionReactionEquations() : Source_fct_pt(0), Wind_fct_pt(0),
-  Reaction_fct_pt(0), Reaction_deriv_fct_pt(0),
+					 Reaction_fct_pt(0), Reaction_deriv_fct_pt(0), F_fct_pt(0),
   ALE_is_disabled(false)
   {
    //Set diffusion coefficients to default
@@ -191,7 +191,7 @@ public:
     }
   }
 
- /// \short Disable ALE, i.e. assert the mesh is not moving -- you do this
+  /// \short Disable ALE, i.e. assert the mesh is not moving -- you do this
  /// at your own risk!
  void disable_ALE()
   {
@@ -207,156 +207,36 @@ public:
    ALE_is_disabled=false;
   }
 
-/// \short Number of scalars/fields output by this element. Reimplements
- /// broken virtual function in base class.
- unsigned nscalar_paraview() const
+
+ /// Output with default number of plot points
+ void output(std::ostream &outfile) 
   {
-   return NREAGENT+DIM;
+   unsigned nplot=5;
+   output(outfile,nplot);
   }
 
- /// \short Write values of the i-th scalar field at the plot points. Needs 
- /// to be implemented for each new specific element type.
- void scalar_value_paraview(std::ofstream& outfile,
-                            const unsigned& i,
-                            const unsigned& nplot) const
-  {
-   //Vector of local coordinates
-   Vector<double> s(DIM);
-
-   // Loop over plot points
-   unsigned num_plot_points=nplot_points(nplot);
-   for (unsigned iplot=0;iplot<num_plot_points;iplot++)
-   {
-    // Get local coordinates of plot point
-    get_s_plot(iplot,nplot,s);
-   
-    // Get Eulerian coordinate of plot point
-    Vector<double> x(DIM);
-    interpolated_x(s,x);
-
-    // If we're outputting one of the concentrations(?)
-    if (i<NREAGENT)
-    {
-     outfile << interpolated_c_adv_diff_react(s,i) << std::endl;
-    }
-    // If we're outputting the wind
-    else if (i<NREAGENT+DIM)
-    {
-     // Get the wind
-     Vector<double> wind(DIM);
-       
-     // Dummy integration point needed
-     unsigned ipt=0;
-
-     // Get the wind at this integration point
-     get_wind_adv_diff_react(ipt,s,x,wind);
-
-     // Output the wind
-     outfile << wind[i-NREAGENT] << std::endl;
-    }
-    else
-    {
-     throw OomphLibError("Don't have this many fields...",
-			 OOMPH_EXCEPTION_LOCATION,
-			 OOMPH_CURRENT_FUNCTION);
-    }
-   }
-  }
- 
-/*
- /// \short Write values of the i-th scalar field at the plot points. Needs 
- /// to be implemented for each new specific element type.
- void scalar_value_fct_paraview(std::ofstream& outfile,
-				const unsigned& i,
-				const unsigned& nplot) const
- {
-   //Vector of local coordinates
-   Vector<double> s(DIM);
-
-   // Loop over plot points
-   unsigned num_plot_points=nplot_points_paraview(nplot);
-   for (unsigned iplot=0;iplot<num_plot_points;iplot++)
-    {
-
-     // Get local coordinates of plot point
-     get_s_plot(iplot,nplot,s);
-     
-     // Get Eulerian coordinate of plot point
-     Vector<double> x(DIM);
-     interpolated_x(s,x);
-
-     //Vector of local coordinates
-     Vector<double> s(DIM);
- 
-     // Exact solution (concentrations) vector
-     Vector<double> exact_c(NREAGENT,0.0);
-    
-     // Exact solution (wind) vector
-     Vector<double> exact_w(DIM,0.0);
-    
-     // Loop over plot points
-     unsigned num_plot_points=nplot_points(nplot);
-     for (unsigned iplot=0;iplot<num_plot_points;iplot++)
-     {
-      // Get local coordinates of plot point
-      get_s_plot(iplot,nplot,s);
-   
-      // Get Eulerian coordinate of plot point
-      Vector<double> x(DIM);
-      interpolated_x(s,x);
-
-      // Use the elements timestepper to get the time
-      double t=time_stepper_pt()->time_pt()->time();
-      
-      // Get exact solution at this point
-      (*exact_soln_pt)(t,x,exact_c,exact_w);
-      
-      // If we're outputting one of the concentrations(?)
-      if (i<NREAGENT)
-      {
-       outfile << exact_c[i] << std::endl;
-      }
-      // If we're outputting the wind
-      else if (i<NREAGENT+DIM)
-      {
-       // Output the wind
-       outfile << exact_w[i-NREAGENT] << std::endl;
-      }
-      else
-      {
-       throw OomphLibError("Don't have this many fields...",
-			   OOMPH_EXCEPTION_LOCATION,
-			   OOMPH_CURRENT_FUNCTION);
-      }
-     }
-    }
-  }
-*/
+ /// \short Output FE representation of soln: x,y,u or x,y,z,u at 
+ /// nplot^DIM plot points
+ void output(std::ostream &outfile, const unsigned &nplot);
 
 
- //This function with these input parameter types does not exist for paraview
- //vtu type outputs
-/* /// C_style output with default number of plot points
+ /// C_style output with default number of plot points
  void output(FILE* file_pt)
   {
    unsigned n_plot=5;
    output(file_pt,n_plot);
-   }
+  }
 
  /// \short C-style output FE representation of soln: x,y,u or x,y,z,u at 
  /// n_plot^DIM plot points
  void output(FILE* file_pt, const unsigned &n_plot);
-*/
-/*
+
+
  /// Output exact soln: x,y,u_exact or x,y,z,u_exact at nplot^DIM plot points
- void output_fct_paraview(std::ostream &outfile,
-			  const unsigned &nplot, 
-			  FiniteElement::SteadyExactSolutionFctPt 
-			  exact_soln_pt);
-*/
-  //This function with these input parameter types does not exist for paraview
- //vtu type outputs
- /*
+ void output_fct(std::ostream &outfile, const unsigned &nplot, 
+                 FiniteElement::SteadyExactSolutionFctPt 
+                 exact_soln_pt);
+
  /// \short Output exact soln: x,y,u_exact or x,y,z,u_exact at 
  /// nplot^DIM plot points (dummy time-dependent version to 
  /// keep intel compiler happy)
@@ -369,7 +249,7 @@ public:
     OOMPH_CURRENT_FUNCTION,
     OOMPH_EXCEPTION_LOCATION);
   }
- */
+
 
  /// Get error against and norm of exact solution
  void compute_error(std::ostream &outfile, 
@@ -423,6 +303,14 @@ public:
  /// Access function: Pointer to reaction function. Const version
  AdvectionDiffusionReactionReactionDerivFctPt reaction_deriv_fct_pt() const 
   {return Reaction_deriv_fct_pt;}
+ 
+  /// Access function: Pointer to F function
+ AdvectionDiffusionReactionFFctPt& f_fct_pt() 
+  {return F_fct_pt;}
+
+ /// Access function: Pointer to F function. Const version
+ AdvectionDiffusionReactionFFctPt f_fct_pt() const 
+  {return F_fct_pt;}
  
  /// Vector of diffusion coefficients
  const Vector<double> &diff() const {return *Diff_pt;}
@@ -508,33 +396,143 @@ public:
  /// concentration variables. If no explicit function pointer is set,
  /// these will be calculated by finite differences
 
- virtual void get_reaction_deriv_adv_diff_react(const unsigned& ipt,
-						const Vector<double> &s,
-                                                const Vector<double> &C,
-						const DenseMatrix <double> &dCdx,
-                                                DenseMatrix<double> &dRdC)
+ //This is JUST the drdc bit, not dr/d(dcdx) for if R depends on the spatial
+ //derivative of c.
+ 
+ virtual void get_dRdC_FD_adv_diff_react(const unsigned& ipt,
+					 const Vector<double> &s,
+					 const Vector<double> &C,
+					 const DenseMatrix <double> &dCdx,
+					 DenseMatrix<double> &dRdC)
+
   const
+ {
+  //If no reaction pointer set, return zero
+
+  //Local copy of the unknowns and their derivatives
+  Vector<double> C_local = C;
+  DenseMatrix<double> dCdx_local=dCdx;
+  //Finite differences
+  Vector<double> R(NREAGENT), R_plus_C(NREAGENT), R_minus_C(NREAGENT);
+  //Get the initial reaction terms
+  const double fd_step = GeneralisedElement::Default_fd_jacobian_step;
+  //Now loop over all the reagents
+  //Holly - want to check the order of these loops is ok, and the +=
+       
+  for(unsigned p=0;p<NREAGENT;p++)
   {
+   //Store the old value
+   double old_var_C = C_local[p];
+   //Increment the value
+   C_local[p] += fd_step;
+   //Get the new values
+   (*Reaction_fct_pt)(C_local,dCdx_local,R_plus_C);
+   //Reset the values
+   C_local[p] = old_var_C;
+   //Decrement the values
+   C_local[p] -= fd_step;
+	 
+   //Get the new values
+   (*Reaction_fct_pt)(C_local,dCdx_local, R_minus_C);
+	 
+   //Assemble the column of the jacobian
+   for(unsigned r=0;r<NREAGENT;r++)
+   {
+    dRdC(r,p) += (R_plus_C[r] - R_minus_C[r])/(2.0*fd_step);
+   }
+
+   //Reset the value
+   C_local[p] = old_var_C;
+  }
+
+ }
+
+
+ virtual void get_dRddCdx_FD_adv_diff_react(const unsigned& ipt,
+					 const Vector<double> &s,
+					 const Vector<double> &C,
+					 const DenseMatrix <double> &dCdx,
+					 RankThreeTensor<double> &dRddCdx)
+
+  const
+
+ {
+  //Local copy of the unknowns and their derivatives
+  Vector<double> C_local = C;
+  DenseMatrix<double> dCdx_local= dCdx;
+  //Finite differences
+  Vector<double> R(NREAGENT), R_plus_dCdx(NREAGENT), R_minus_dCdx(NREAGENT);
+  //Get the initial reaction terms
+  const double fd_step = GeneralisedElement::Default_fd_jacobian_step;
+  //Now loop over all the reagents
+  //Holly - want to check the order of these loops is ok, and the +=
+
+  //For each equation (each reaction term)
+  for(unsigned r=0;r<NREAGENT;r++)
+  {
+   //For each reagent within the equation (concentrations which the R depends on) 
+   for(unsigned p=0;p<NREAGENT;p++)
+   {
+    //For each spatial dimension
+    for(unsigned i=0;i<DIM;i++)
+    {
+     //HOLLYYYYYYY
+     double old_var_dCdx= dCdx_local(p,i);
+     //Increment the value
+     dCdx_local(p,i) += fd_step;
+     //Get the new value for each equation increased in the dC_p/dx_i direction
+     (*Reaction_fct_pt)(C_local,dCdx_local,R_plus_dCdx);
+     //Reset the value
+     dCdx_local(p,i)=old_var_dCdx;
+
+     //Decrement the value
+     dCdx_local(p,i)-=fd_step;
+     //Get the new value
+     (*Reaction_fct_pt)(C_local,dCdx_local,R_minus_dCdx);
+     //Reset the value
+     dCdx_local(p,i)=old_var_dCdx;
+     
+     //Build the rank 3 tensor
+     dRddCdx(r,p,i)+=(R_plus_dCdx[r] - R_minus_dCdx[r])/(2.0*fd_step);
+    }
+   }
+  }
+ }
+
+
+
+
+ /// \short Get the derivatives of the reaction terms with respect to the 
+ /// concentration variables. If no explicit function pointer is set,
+ /// these will be calculated by finite differences
+
+ /*virtual void get_reaction_deriv_adv_diff_react(const unsigned& ipt,
+   const Vector<double> &s,
+   const Vector<double> &C,
+   const DenseMatrix <double> &dCdx,
+   DenseMatrix<double> &dRdC)
+   const
+   {
    //If no reaction pointer set, return zero
    if(Reaction_fct_pt==0)
-    {
-     for(unsigned r=0;r<NREAGENT;r++)
-      {
-       for(unsigned p=0;p<NREAGENT;p++)
-        {
-         dRdC(r,p) = 0.0;
-        }
-      }
-    }
+   {
+   for(unsigned r=0;r<NREAGENT;r++)
+   {
+   for(unsigned p=0;p<NREAGENT;p++)
+   {
+   dRdC(r,p) = 0.0;
+   }
+   }
+   }
    else
-    {
-     //If no function pointer get finite differences
-     if(Reaction_deriv_fct_pt==0)
-      {
-       //Local copy of the unknowns and their derivatives
-       Vector<double> C_local = C;
-       DenseMatrix<double> dCdx_local= dCdx;
-       //Finite differences
+   {
+   //If no function pointer get finite differences
+   if(Reaction_deriv_fct_pt==0)
+   {
+   //Local copy of the unknowns and their derivatives
+   Vector<double> C_local = C;
+   DenseMatrix<double> dCdx_local= dCdx;
+   //Finite differences
        Vector<double> R(NREAGENT), R_plus_C(NREAGENT), R_minus_C(NREAGENT);
        Vector<double> R_plus_dCdx(NREAGENT), R_minus_dCdx(NREAGENT);
        //Get the initial reaction terms
@@ -570,6 +568,7 @@ public:
 	 // Loop over the dimensions for the dR/(dC/dxi)
 	 for(unsigned i=0;i<DIM;i++)
 	 {
+	  //HOLLYYYYYYY
 	  double old_var_dCdx= dCdx_local(p,i);
 	  //Increment the value
 	  dCdx_local(p,i) += fd_step;
@@ -613,6 +612,28 @@ public:
        //std::cout<<"not doing it"<<std::endl;
        (*Reaction_deriv_fct_pt)(C,dCdx,dRdC);
       }
+    }
+    }*/
+
+  /// \short Get F as a function of the given reagent concentrations
+ /// This function is
+ /// virtual to allow overloading in multi-physics problems where
+ /// the F function might be determined by
+ /// another system of equations 
+ inline virtual void get_F_adv_diff_react(const unsigned& ipt,
+                                                 const Vector<double> &C,
+						 const DenseMatrix <double> &dCdx,
+                                                 Vector<double>& F) const
+  {
+   //If no F function has been set, return zero
+   if(F_fct_pt==0)
+    {
+     for(unsigned r=0;r<NREAGENT;r++) {F[r]= 0.0;}
+    }
+   else
+    {
+     // Get F terms
+     (*F_fct_pt)(C, dCdx ,F);
     }
   }
 
@@ -766,6 +787,9 @@ protected:
  /// Pointer to reaction derivatives
  AdvectionDiffusionReactionReactionDerivFctPt Reaction_deriv_fct_pt;
 
+ //Pointer to F function:
+ AdvectionDiffusionReactionFFctPt F_fct_pt;
+
  /// \short Boolean flag to indicate if ALE formulation is disabled when 
  /// time-derivatives are computed. Only set to true if you're sure
  /// that the mesh is stationary.
@@ -822,21 +846,17 @@ template <unsigned NREAGENT, unsigned DIM, unsigned NNODE_1D>
  /// \short  Required  # of `values' (pinned or dofs) 
  /// at node n
  inline unsigned required_nvalue(const unsigned &n) const {return NREAGENT;}
- 
  /// \short Output function:  
  ///  x,y,u   or    x,y,z,u
  void output(std::ostream &outfile)
   {AdvectionDiffusionReactionEquations<NREAGENT,DIM>::output(outfile);}
-  /*
+ 
  /// \short Output function:  
  ///  x,y,u   or    x,y,z,u at n_plot^DIM plot points
- void output_paraview(std::ostream &outfile, const unsigned &n_plot)
-  {AdvectionDiffusionReactionEquations<NREAGENT,DIM>::output_paraview(outfile,n_plot);}
-  */
-//
- //This function with these input parameter types does not exist for paraview
- //vtu type outputs
-/*
+ void output(std::ostream &outfile, const unsigned &n_plot)
+  {AdvectionDiffusionReactionEquations<NREAGENT,DIM>::output(outfile,n_plot);}
+
+
  /// \short C-style output function:  
  ///  x,y,u   or    x,y,z,u
  void output(FILE* file_pt)
@@ -850,8 +870,7 @@ template <unsigned NREAGENT, unsigned DIM, unsigned NNODE_1D>
   {
    AdvectionDiffusionReactionEquations<NREAGENT,DIM>::output(file_pt,n_plot);
   }
-*/
-  /*
+
  /// \short Output function for an exact solution:
  ///  x,y,u_exact   or    x,y,z,u_exact at n_plot^DIM plot points
  void output_fct(std::ostream &outfile, const unsigned &n_plot,
@@ -859,13 +878,9 @@ template <unsigned NREAGENT, unsigned DIM, unsigned NNODE_1D>
                  exact_soln_pt)
   {
    AdvectionDiffusionReactionEquations<NREAGENT,DIM>::
-    output_fct_paraview(outfile,n_plot,exact_soln_pt);
-  }
-  */
+    output_fct(outfile,n_plot,exact_soln_pt);}
 
- //This function with these input parameter types does not exist for paraview
- //vtu type outputs
-  /*
+
  /// \short Output function for a time-dependent exact solution.
  ///  x,y,u_exact   or    x,y,z,u_exact at n_plot^DIM plot points
  /// (Calls the steady version)
@@ -877,7 +892,6 @@ template <unsigned NREAGENT, unsigned DIM, unsigned NNODE_1D>
    AdvectionDiffusionReactionEquations<NREAGENT,DIM>::
     output_fct(outfile,n_plot,time,exact_soln_pt);
   }
-  */
 
 protected:
 
@@ -1083,7 +1097,8 @@ fill_in_generic_residual_contribution_adv_diff_react(
  DenseMatrix<double> &jacobian, 
  DenseMatrix<double> 
  &mass_matrix,
- unsigned flag) 
+ unsigned flag)
+
 {
  //Find out how many nodes there are
  const unsigned n_node = nnode();
@@ -1195,13 +1210,22 @@ fill_in_generic_residual_contribution_adv_diff_react(
    get_reaction_adv_diff_react(ipt,interpolated_c,interpolated_dcdx,R);
 
    //If we are getting the jacobian the get the derivative terms
-   DenseMatrix<double> dRdC(NREAGENT);
+   DenseMatrix<double> dRdC_FD_only(NREAGENT);
+   //HOLLY this needs to be a 3D tensor if we're gonnna do it like this
+   RankThreeTensor<double> dRddCdx_FD_only(NREAGENT);
    //Holly- prints out flag for if it is using my equations or not
    // std::cout<<"FLAG IS"<<flag<<std::endl;
    if(flag)
     {
-     get_reaction_deriv_adv_diff_react(ipt,s,interpolated_c,interpolated_dcdx,dRdC);
+     get_dRdC_FD_adv_diff_react(ipt,s,interpolated_c,interpolated_dcdx,dRdC_FD_only);
+     get_dRddCdx_FD_adv_diff_react(ipt,s,interpolated_c,interpolated_dcdx,dRddCdx_FD_only);
     }
+
+   
+   
+   //Get F terms
+   Vector<double> F(NREAGENT);
+   get_F_adv_diff_react(ipt,interpolated_c,interpolated_dcdx,F);
    
 
    // Assemble residuals and Jacobian
@@ -1236,7 +1260,7 @@ fill_in_generic_residual_contribution_adv_diff_react(
            if(!ALE_is_disabled) {tmp -= T[r]*mesh_velocity[k];}
            //Now construct the contribution to the residuals
            residuals[local_eqn] -= 
-            interpolated_dcdx(r,k)*(tmp*test(l) + D[r]*dtestdx(l,k))*W;
+            (interpolated_dcdx(r,k)*(tmp*test(l) + D[r]*dtestdx(l,k))+F[r]*dtestdx(l,k))*W;
           }
          
          // Calculate the jacobian
@@ -1258,7 +1282,12 @@ fill_in_generic_residual_contribution_adv_diff_react(
                  //Diagonal terms (i.e. the basic equations)
                  if(r2==r)
                    {
-                   //Mass matrix term
+		    //Mass matrix term
+		    //weight(1,0) refers to the timestepping coefficient for the
+		    //first time derivative and u0 (the CURRENT time)
+		    //To find Jacobian, we use dRes_dC, and to get d_dc(dc_dt),
+		    //we take the derivative with respect to the CURRENT DISCRETISED
+		    //C value 
                    jacobian(local_eqn,local_unknown) 
                     -= T[r]*test(l)*psi(l2)*
                     node_pt(l2)->time_stepper_pt()->weight(1,0)*W;
@@ -1266,6 +1295,7 @@ fill_in_generic_residual_contribution_adv_diff_react(
                    //Add the mass matrix term
                    if(flag==2)
                     {
+		     //Holly - what is the mass matrix and why does it have tau?
                      mass_matrix(local_eqn,local_unknown)
                       += T[r]*test(l)*psi(l2)*W;
                     }
@@ -1281,18 +1311,77 @@ fill_in_generic_residual_contribution_adv_diff_react(
                       -= dpsidx(l2,i)*(tmp*test(l)+D[r]*dtestdx(l,i))*W;
                     }
                    
-                  } //End of diagonal terms
+		   } //End of diagonal terms
+		 //The next terms are in both the diag and non-diag parts of the
+		 //matrix Jacobian
 		 //Now add the cross-reaction terms
 		 //Holly - dRdC(r,p) already includes dRdC*psi and dRd(dC/dx)*dpsidx
 		 //so I don't think I need to add anything
-		 jacobian(local_eqn,local_unknown) -= 
-		  dRdC(r,r2)*psi(l2)*test(l)*W;
+		 
+		 if(Reaction_fct_pt==0)
+		 {
+		    dRdC_FD_only(r,r2) = 0.0;
+		    for (int i=0;i<DIM;i++)
+		    {
+		     dRddCdx_FD_only(r,r2,i)=0.0;
+		    } 
+		 }
+		 else
+		 {
+		  //If no function pointer get finite differences
+		  if(Reaction_deriv_fct_pt==0)
+		  {
+		   //This is adding the finite differenced dRdC part only
+		   jacobian(local_eqn,local_unknown) -= 
+		    dRdC_FD_only(r,r2)*psi(l2)*test(l)*W;
+		   for(unsigned i=0;i<DIM;i++)
+		   {
+		    //This is adding the dRddCdx part only finite differenced
+		    jacobian(local_eqn,local_unknown) -=
+		     dRddCdx_FD_only(r,r2,i)*dpsidx(l2,i)*test(l)*W;
+		    //HOLLYYYY
+		   }
+		   std::cout<<jacobian(local_eqn,local_unknown)<<std::endl;
+		  }
+		  else //HOLLYYYY WHAT HAPPENS IF THE USER ENTERS THEIR OWN DRDC?
+		  {
+		   
+		  }
+		 }
+
+		 /*if(F_fct_pt==0)
+		 {
+		  dFdC_FD_only(r,r2)=0.0;
+		  dFddCdx_FD_only(r,r2)=0.0;
+		 }
+		 
+		 else
+		 {
+		  if (F_deriv_fct_pt==0)
+		  {
+		   //This is adding the finite differenced dFdC part only
+		   jacobian(local_eqn,local_unknown) -=
+		  }
+		  else
+		  {
+		   //WHAT HAPPENS IF THEY ENTER THEIR OWN F DERIVATIVE?
+		  }
+		  }*/
+		  
+		   
+
+
+
+    
+
+
                 }
               }
             } 
           } //End of jacobian 
         } 
       } //End of loop over reagents
+     
     } //End of loop over nodes
   } // End of loop over integration points
 } 
@@ -1389,21 +1478,24 @@ integrate_reagents(Vector<double> &C) const
 
 }
 
-/*
+
 //======================================================================
- /// \short Write values of the i-th scalar field at the plot points. Needs 
- /// to be implemented for each new specific element type.
+/// \short Output function:
+///
+///   x,y,u,w_x,w_y   or    x,y,z,u,w_x,w_y,w_z
+///
+/// nplot points in each coordinate direction
 //======================================================================
 template <unsigned NREAGENT, unsigned DIM>
 void  AdvectionDiffusionReactionEquations<NREAGENT,DIM>::
-scalar_value_paraview(std::ofstream &outfile,
-		      const unsigned& i,
-		      const unsigned &nplot) const
+output(std::ostream &outfile, const unsigned &nplot)
 { 
  //Vector of local coordinates
  Vector<double> s(DIM);
 
- std::cout<<"plotting in paraview format!!!"<<std::endl;
+ 
+ // Tecplot header info
+ outfile << tecplot_zone_string(nplot);
  
  // Loop over plot points
  unsigned num_plot_points=nplot_points(nplot);
@@ -1411,30 +1503,19 @@ scalar_value_paraview(std::ofstream &outfile,
   {
    // Get local coordinates of plot point
    get_s_plot(iplot,nplot,s);
-
-   //Get the nodal index at which the unknown is stored
-   unsigned c_nodal_index[NREAGENT];
-   Vector<double> interpolated_c(NREAGENT);
-   unsigned n_node=nnode();
-   //Set up memory for the shape functions
-   Shape psi(n_node);
-   DShape dpsidx(n_node,DIM);
-	 
-   //Call the derivatives of the shape functions
-   dshape_eulerian(s,psi,dpsidx);
-   for(unsigned r=0;r<NREAGENT;r++)
-   {
-    c_nodal_index[r]= c_index_adv_diff_react(r);
-    //Get the value at the node
-    const double c_value = raw_nodal_value(iplot,c_nodal_index[r]);
-    for(unsigned l=0;l<n_node;l++)
+   
+   // Get Eulerian coordinate of plot point
+   Vector<double> x(DIM);
+   interpolated_x(s,x);
+   
+   for(unsigned i=0;i<DIM;i++) 
     {
-     //Calculate the interpolated value
-     interpolated_c[r] += c_value*psi(l);
+     outfile << x[i] << " ";
     }
-
-    outfile << interpolated_c[r] << "      ";
-   }
+   for(unsigned i=0;i<NREAGENT;i++)
+    {
+     outfile << interpolated_c_adv_diff_react(s,i) << " ";
+    }
 
    // Get the wind
    Vector<double> wind(DIM);
@@ -1449,13 +1530,12 @@ scalar_value_paraview(std::ofstream &outfile,
    
   }
 
+ // Write tecplot footer (e.g. FE connectivity lists)
+ write_tecplot_zone_footer(outfile,nplot);
 
 }
-*/
 
- //This function with these input parameter types does not exist for paraview
- //vtu type outputs
-/*
+
 //======================================================================
 /// C-style output function:
 ///
@@ -1497,8 +1577,8 @@ output(FILE* file_pt, const unsigned &nplot)
 
 }
 
-*/
- /*
+
+
 //======================================================================
  /// \short  Output exact solution
  /// 
@@ -1509,7 +1589,7 @@ output(FILE* file_pt, const unsigned &nplot)
 //======================================================================
 template <unsigned NREAGENT,unsigned DIM>
 void AdvectionDiffusionReactionEquations<NREAGENT,DIM>::
-output_fct_paraview(std::ostream &outfile, 
+output_fct(std::ostream &outfile, 
            const unsigned &nplot, 
            FiniteElement::SteadyExactSolutionFctPt exact_soln_pt)
 {
@@ -1552,7 +1632,7 @@ output_fct_paraview(std::ostream &outfile,
  write_tecplot_zone_footer(outfile,nplot);
  
 }
- */
+
 //======================================================================
  /// \short Validate against exact solution
  /// 
@@ -1722,7 +1802,7 @@ namespace GlobalVariables
   //Holly - it can get the dCdx value
   //std::cout<<dCdx(0,0)<<std::endl;
   R[0] =C[0]*dCdx(0,0);
-  }
+ }
  /*void activator_inhibitor_reaction_derivative(const Vector<double> &C, const DenseMatrix <double> &dCdx,
                                  DenseMatrix<double> &dRdC)
  {
@@ -1773,21 +1853,22 @@ template<class ELEMENT>
 RefineableOneDAdvectionDiffusionReactionProblem<ELEMENT>::
 RefineableOneDAdvectionDiffusionReactionProblem()
 {
- //Allocate the timestepper (second order implicit)
+ //Allocate the timestepper (fourth order implicit)
  add_time_stepper_pt(new BDF<4>);
  // Set up the mesh
  // Number of elements initially
- const unsigned n = 500; //2;
+ const unsigned n = 2000; //2;
  // Domain length
- const double length = 1;
+ const double pi=acos(-1);
+ const double length = 2*pi;
  // Build and assign the refineable mesh, need to pass in number of
  // elements, length and the timestepper
  Problem::mesh_pt() =
   new /*Refineable*/OneDMesh<ELEMENT>(n,length,Problem::time_stepper_pt());
 
  unsigned nplot=5;
- ofstream filename("initial_mesh.vtu");
- this->mesh_pt()->output_paraview(filename,nplot);
+ ofstream filename("initial_mesh.dat");
+ this->mesh_pt()->output(filename,nplot);
  
 // Create/set error estimator (default)
  //mesh_pt()->spatial_error_estimator_pt() = new Z2ErrorEstimator;
@@ -1805,8 +1886,8 @@ RefineableOneDAdvectionDiffusionReactionProblem()
  // Set the boundary conditions for this problem.
  // Make the domain periodic by setting the values at the left-hand boundary
  // equal to those on the right
- mesh_pt()->boundary_node_pt(left_boundary_id,i_node)
-   ->make_periodic(mesh_pt()->boundary_node_pt(right_boundary_id, i_node));
+ mesh_pt()->boundary_node_pt(left_boundary_id,i_node)->pin(0);
+ mesh_pt()->boundary_node_pt(right_boundary_id, i_node)->pin(0);
 
  
  // Loop over the elements to set up element-specific things that cannot
@@ -1827,6 +1908,8 @@ RefineableOneDAdvectionDiffusionReactionProblem()
    elem_pt->reaction_fct_pt() = &GlobalVariables::activator_inhibitor_reaction;
     //And their derivatives
    elem_pt->reaction_deriv_fct_pt() = 0;
+   //Set the F function
+   elem_pt->f_fct_pt() = 0;
    /*
      &GlobalVariables::activator_inhibitor_reaction_derivative;*/  
   }
@@ -1840,43 +1923,26 @@ template<class ELEMENT>
 void RefineableOneDAdvectionDiffusionReactionProblem<ELEMENT>::
 set_initial_condition()
 {
- //Holly - Just need one spot
- /*
- //Set the number of hot spots
- const unsigned n_spot = 1;
- */
- //Set the centre of the hot spot
- const double centre_x = 0.5;
  //Set the initial concentrations of the reagent
  unsigned n_node = mesh_pt()->nnode();
  //Loop over the nodes
  for(unsigned n=0;n<n_node;n++)
-  {
-   //Local pointer to the node
-   Node* nod_pt = mesh_pt()->node_pt(n);   
-   double x = nod_pt->x(0);
-   /*
-   // Initial condition set equal to sin(pi*x)
-   double pi =std::acos(-1);
-   double sinIC=std::sin(pi*x);
-   nod_pt->set_value(0,sinIC);*/
+ {
+  //Local pointer to the node
+  Node* nod_pt = mesh_pt()->node_pt(n);   
+  double x = nod_pt->x(0);
 
-   //Initial condition 1 reagent hot spot
-   double spot = 0.0;
-   //Find the square distance from the centre of the
-   //hot spot
-   double r2 = (x - centre_x)*(x - centre_x);
-   //Add an exponential hump to the value of the spot variable
-   //The "10" in the exponential sets the steepness of the spot
-   spot += 2.0*exp(-10.0*r2)-1;
-   //Set the intial condition to bea thin exponential spot with
-   // finite support
-   nod_pt->set_value(0,spot);
-  }
+  //Initial condition 
+  double IC=sin(x);
+
+  //Set the IC
+  nod_pt->set_value(0,IC);
+  
+ }
  //Document the initial solution
- ofstream filename("initial.vtu");
+ ofstream filename("initial.dat");
  //Plot the solution with 5 points per element
- mesh_pt()->output_paraview(filename,5);
+ mesh_pt()->output(filename,5);
  filename.close();
  //Set the initial values impulsive
  //i.e. assume that the solution has been at the initial condition for all
@@ -1905,9 +1971,9 @@ void RefineableOneDAdvectionDiffusionReactionProblem<ELEMENT>::timestep(
  {
   unsigned i=0;
   char file1[100];
-  sprintf(file1,"RESLT/step%i.vtu",i+1);
+  sprintf(file1,"RESLT/step%i.dat",i+1);
   ofstream out1(file1);
-  mesh_pt()->output_paraview(out1,5);
+  mesh_pt()->output(out1,5);
   out1.close();
  }
  //Now set so that only one round of adaptation is performed each timestep
@@ -1921,9 +1987,9 @@ void RefineableOneDAdvectionDiffusionReactionProblem<ELEMENT>::timestep(
    unsteady_newton_solve(dt,max_adapt,first);
    //Output the result
    char file1[100];
-   sprintf(file1,"RESLT/step%i.vtu",i+1);
+   sprintf(file1,"RESLT/step%i.dat",i+1);
    ofstream out1(file1);
-   mesh_pt()->output_paraview(out1,5);
+   mesh_pt()->output(out1,5);
    out1.close();
   }
 }
@@ -1939,9 +2005,9 @@ int main()
  //GlobalVariables::D[0] = epsilon*epsilon;
  //GlobalVariables::A = -0.4;
  GlobalVariables::Tau[0]=1.0;
- GlobalVariables::D[0]=1.0;
+ GlobalVariables::D[0]=0.1;
  //Set the timestep
- double dt = 0.0001;
+ double dt = 0.1;
  unsigned nstep=10;
  //Set up the problem
  //------------------
