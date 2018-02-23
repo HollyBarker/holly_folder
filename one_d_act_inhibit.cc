@@ -587,8 +587,6 @@ public:
   }
 #endif
   
-   // Hollyyyy
-   std::cout << "1.2601 - still working here!" << std::endl;
   //If no reaction pointer set, return zero
 
   //Local copy of the unknowns and their derivatives
@@ -601,9 +599,7 @@ public:
   //Get the initial reaction terms
   const double fd_step = GeneralisedElement::Default_fd_jacobian_step;
   //Now loop over all the reagents
-  //Holly - want to check the order of these loops is ok, and the +=
-      // Hollyyyy
-   std::cout << "1.2602 - still working here!" << std::endl;    
+  //Holly - want to check the order of these loops is ok, and the += 
   for(unsigned p=0;p<NREAGENT;p++)
   {
    //Store the old value
@@ -611,32 +607,22 @@ public:
    //Increment the value
    C_local[p] += fd_step;
    //Get the new values
-      // Hollyyyy
-   std::cout << "1.26021 - still working here!" << std::endl;
    (*F_fct_pt)(C_local,dCdx_local,F_plus_C);
-   std::cout << "1.26022 - still working here!" << std::endl;
    //Reset the values
    C_local[p] = old_var_C;
    //Decrement the values
    C_local[p] -= fd_step;
-	    // Hollyyyy
-   std::cout << "1.2602 - still working here!" << std::endl;
    //Get the new values
    (*F_fct_pt)(C_local,dCdx_local, F_minus_C);
-   // Hollyyyy
-   std::cout << "1.2603 - still working here!" << std::endl;	 
+	 
    //Assemble the column of the jacobian
    for(unsigned r=0;r<NREAGENT;r++)
    {
     dFdC(r,p) += (F_plus_C[r] - F_minus_C[r])/(2.0*fd_step);
    }
-   // Hollyyyy
-   std::cout << "1.2604 - still working here!" << std::endl;
    //Reset the value
    C_local[p] = old_var_C;
   }//End loop over the reagents
-     // Hollyyyy
-   std::cout << "1.2605 - still working here!" << std::endl;
  }
 
  virtual void get_dFddCdx_FD_adv_diff_react(const unsigned& ipt,
@@ -1221,9 +1207,6 @@ fill_in_generic_residual_contribution_adv_diff_react(
    Vector<double> interpolated_x(DIM,0.0);
    DenseMatrix<double> interpolated_dcdx(NREAGENT,DIM,0.0);
    Vector<double> mesh_velocity(DIM,0.0);
-
-   // Hollyyyy
-   std::cout << "1.1 - still working here!" << std::endl;
 		 
 
    //Calculate function value and derivatives:
@@ -1265,28 +1248,19 @@ fill_in_generic_residual_contribution_adv_diff_react(
         }
       }
     }
-   
-   // Hollyyyy
-   std::cout << "1.2 - still working here!" << std::endl;
 
    //Get source function
    Vector<double> source(NREAGENT,0.0);
    get_source_adv_diff_react(ipt,interpolated_x,source);
 
-   // Hollyyyy
-   std::cout << "1.21 - still working here!" << std::endl;
    //Get wind
    Vector<double> wind(DIM,0.0);
    get_wind_adv_diff_react(ipt,s,interpolated_x,wind);
 
-   // Hollyyyy
-   std::cout << "1.22 - still working here!" << std::endl;
    //Get reaction terms
    Vector<double> R(NREAGENT,0.0);
    get_reaction_adv_diff_react(ipt,interpolated_c,interpolated_dcdx,R);
 
-   // Hollyyyy
-   std::cout << "1.23 - still working here!" << std::endl;
    //If we are getting the jacobian, then get the derivative terms.
    //R depends on C and the gradient of C, so we need to get both
    //of these derivatives. One is a rank 2 tensor...
@@ -1298,36 +1272,24 @@ fill_in_generic_residual_contribution_adv_diff_react(
      get_dRdC_FD_adv_diff_react(ipt,s,interpolated_c,interpolated_dcdx,dRdC_FD);
      get_dRddCdx_FD_adv_diff_react(ipt,s,interpolated_c,interpolated_dcdx,dRddCdx_FD);
     }
-   // Hollyyyy
-   std::cout << "1.24 - still working here!" << std::endl;
    
    //Get F terms
    Vector<double> F(NREAGENT,0.0);
    get_F_adv_diff_react(ipt,interpolated_c,interpolated_dcdx,F);
 
-   // Hollyyyy
-   std::cout << "1.25 - still working here!" << std::endl;
    //If we are getting the jacobian, then get the derivative terms.
    //F depends on C and the gradient of C, so we need to get both
    //of these derivatives. One is a rank 2 tensor...
    DenseMatrix<double> dFdC_FD(NREAGENT,NREAGENT,0.0);
    //... and the other is rank 3.
    
-   // Hollyyyy
-   std::cout << "1.26 - still working here!" << std::endl;
    
    RankThreeTensor<double> dFddCdx_FD(NREAGENT,NREAGENT,DIM, 0.0);
    if(flag)
    {
     get_dFdC_FD_adv_diff_react(ipt,s,interpolated_c,interpolated_dcdx,dFdC_FD);
-    
-   // Hollyyyy
-   std::cout << "1.261 - still working here!" << std::endl;
     get_dFddCdx_FD_adv_diff_react(ipt,s,interpolated_c,interpolated_dcdx,dFddCdx_FD);
    }
-
-   // Hollyyyy
-   std::cout << "1.3 - still working here!" << std::endl;
    
    //If we are getting the jacobian and the user has specified the
    //deriavtives of R and/or F with respect to C, these matrices
@@ -1338,10 +1300,6 @@ fill_in_generic_residual_contribution_adv_diff_react(
    //Review later.
    DenseMatrix<double> dRdC(NREAGENT,NREAGENT,0.0);
    DenseMatrix<double> dFdC(NREAGENT,NREAGENT,0.0);
-
-
-   // Hollyyyy
-   std::cout << "1.4 - still working here!" << std::endl;
    
    // Assemble residuals and Jacobian
    //--------------------------------
@@ -1394,15 +1352,9 @@ fill_in_generic_residual_contribution_adv_diff_react(
                //If at a non-zero degree of freedom add in the entry
                if(local_unknown >= 0)
                 {
-		 // Hollyyyy
-		 std::cout << "1 - still working here!" << std::endl;
-		 
                  //Diagonal terms (i.e. the basic equations)
                  if(r2==r)
                    {
-		 // Hollyyyy
-		 std::cout << "2 - still working here!" << std::endl;
-		 
 		    //Mass matrix term
 		    //weight(1,0) refers to the timestepping coefficient for the
 		    //first time derivative and u0 (the CURRENT time)
@@ -1420,11 +1372,8 @@ fill_in_generic_residual_contribution_adv_diff_react(
                      mass_matrix(local_eqn,local_unknown)
                       += T[r]*test(l)*psi(l2)*W;
                     }
-                   
-		 // Hollyyyy
-		 std::cout << "3 - still working here!" << std::endl;
-		 
-                   //Add contribution to Elemental Matrix
+
+		   //Add contribution to Elemental Matrix
                    for(unsigned i=0;i<DIM;i++)
                     {
                      //Temporary term used in assembly
@@ -1442,24 +1391,16 @@ fill_in_generic_residual_contribution_adv_diff_react(
 		 //Holly - dRdC(r,p) already includes dRdC*psi and dRd(dC/dx)*dpsidx
 		 //so I don't think I need to add anything
 		 
-		 // Hollyyyy
-		 std::cout << "4 - still working here!" << std::endl;
-		 
 		 if(Reaction_fct_pt==0)
 		 {
-		 // Hollyyyy
-		 std::cout << "5 - still working here!" << std::endl;
-		    dRdC_FD(r,r2) = 0.0;
-		    for (int i=0;i<DIM;i++)
-		    {
-		     dRddCdx_FD(r,r2,i)=0.0;
-		    } 
+		  dRdC_FD(r,r2) = 0.0;
+		  for (int i=0;i<DIM;i++)
+		  {
+		   dRddCdx_FD(r,r2,i)=0.0;
+		  } 
 		 }
 		 else
 		 {
-		 // Hollyyyy
-		 std::cout << "6 - still working here!" << std::endl;
-		 
 		  //If the user does not specify the equations for the derivatives
 		  //of R wrt each concentration, then it is calculated with finite
 		  //difference equations and the contribution is added to the
@@ -1477,7 +1418,6 @@ fill_in_generic_residual_contribution_adv_diff_react(
 		    jacobian(local_eqn,local_unknown) -=
 		     dRddCdx_FD(r,r2,i)*dpsidx(l2,i)*test(l)*W;
 		   }
-		   //std::cout<<jacobian(local_eqn,local_unknown)<<std::endl;
 		  }
 		  //If the user specifies the equations for the derivatives
 		  //of R wrt each concentration...
@@ -1488,10 +1428,6 @@ fill_in_generic_residual_contribution_adv_diff_react(
 		   jacobian(local_eqn,local_unknown)-=
 		    dRdC(r,r2)*psi(l2)*test(l)*W;
 		  }
-		  
-		 // Hollyyyy
-		 std::cout << "7 - still working here!" << std::endl;
-		 
 		 }
 
 		 //If there is no F term in the original equations:
@@ -1537,9 +1473,6 @@ fill_in_generic_residual_contribution_adv_diff_react(
 		    dRdC(r,r2)*psi(l2)*test(l)*W;
 		  }
 		 }
-		 
-		 // Hollyyyy
-		 std::cout << "8 - still working here!" << std::endl;
                 }
               }
             } 
@@ -1937,14 +1870,16 @@ namespace GlobalVariables
 				   const DenseMatrix <double> &dCdx,
 				   Vector<double> &R)
  {
-  R[0] =C[0]*dCdx(0,0);
+  R[0]=0.0;
+  //R[0] =C[0]*dCdx(0,0);
  }
 
  void activator_inhibitor_f(const Vector<double> &C,
 				   const DenseMatrix <double> &dCdx,
 				   Vector<double> &F)
  {
-  F[0]=0;
+  //F[0]=0;
+  F[0]=-0.5*C[0]*C[0];
  }
  
  /*void activator_inhibitor_reaction_derivative(const Vector<double> &C, const DenseMatrix <double> &dCdx,
@@ -2042,7 +1977,7 @@ RefineableOneDAdvectionDiffusionReactionProblem()
  // Make the domain periodic by setting the values at the left-hand boundary
  // equal to those on the right
  mesh_pt()->boundary_node_pt(left_boundary_id,i_node)->pin(0);
- mesh_pt()->boundary_node_pt(right_boundary_id, i_node)->pin(0);
+ mesh_pt()->boundary_node_pt(right_boundary_id,i_node)->pin(0);
 
  
  // Loop over the elements to set up element-specific things that cannot
@@ -2097,7 +2032,7 @@ set_initial_condition()
   
  }
  //Document the initial solution
- ofstream filename("initial.dat");
+ ofstream filename("RESLT/initial.dat");
  //Plot the solution with 5 points per element
  mesh_pt()->output(filename,5);
  filename.close();
