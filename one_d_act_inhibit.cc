@@ -1936,7 +1936,7 @@ RefineableOneDAdvectionDiffusionReactionProblem()
  add_time_stepper_pt(new BDF<4>);
  // Set up the mesh
  // Number of elements initially
- const unsigned n = 2000; //2;
+ const unsigned n = 5000; //2;
  // Domain length
  const double pi=acos(-1);
  const double length = 2*pi;
@@ -1976,11 +1976,11 @@ RefineableOneDAdvectionDiffusionReactionProblem()
  // Set the boundary conditions for this problem.
  // Make the domain periodic by setting the values at the left-hand boundary
  // equal to those on the right
- //mesh_pt()->boundary_node_pt(left_boundary_id,i_node)->pin(0);
- //mesh_pt()->boundary_node_pt(right_boundary_id,i_node)->pin(0);
+ mesh_pt()->boundary_node_pt(left_boundary_id,i_node)->pin(0);
+ mesh_pt()->boundary_node_pt(right_boundary_id,i_node)->pin(0);
 
- mesh_pt()->boundary_node_pt(left_boundary_id,i_node)
-  ->make_periodic(mesh_pt()->boundary_node_pt(right_boundary_id,i_node));
+ //mesh_pt()->boundary_node_pt(left_boundary_id,i_node)
+ //->make_periodic(mesh_pt()->boundary_node_pt(right_boundary_id,i_node));
  // Loop over the elements to set up element-specific things that cannot
  // be handled by the (argument-free!) ELEMENT constructor: Pass pointer
  // to source function
