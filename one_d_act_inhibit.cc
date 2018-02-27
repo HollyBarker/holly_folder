@@ -1415,8 +1415,8 @@ fill_in_generic_residual_contribution_adv_diff_react(
 		   {
 		    //This is adding the dRddCdx part only (found by
 		    //finite differences)
-		    //jacobian(local_eqn,local_unknown) -=
-		     //dRddCdx_FD(r,r2,i)*dpsidx(l2,i)*test(l)*W;
+		    jacobian(local_eqn,local_unknown) -=
+		     dRddCdx_FD(r,r2,i)*dpsidx(l2,i)*test(l)*W;
 		   }
 		  }
 		  //If the user specifies the equations for the derivatives
@@ -1461,8 +1461,8 @@ fill_in_generic_residual_contribution_adv_diff_react(
 		   {
 		    //This is adding dFddCdx part only (found by
 		    //finite differences)
-		    //jacobian(local_eqn,local_unknown)-=
-		     //dFddCdx_FD(r,r2,i)*dpsidx(l2,i)*test(l)*W;
+		    jacobian(local_eqn,local_unknown)-=
+		     dFddCdx_FD(r,r2,i)*dpsidx(l2,i)*test(l)*W;
 		   }
 		  }
 		  //Get dFdC from the user-specified function
