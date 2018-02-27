@@ -1870,16 +1870,16 @@ namespace GlobalVariables
 				   const DenseMatrix <double> &dCdx,
 				   Vector<double> &R)
  {
-  //R[0]=0.0;
-  R[0] =C[0]*dCdx(0,0);
+  R[0]=0.0;
+  //R[0] =C[0]*dCdx(0,0);
  }
 
  void activator_inhibitor_f(const Vector<double> &C,
 				   const DenseMatrix <double> &dCdx,
 				   Vector<double> &F)
  {
-  F[0]=0;
-  //F[0]=-0.5*C[0]*C[0];
+  //F[0]=0;
+  F[0]=-0.5*C[0]*C[0];
  }
  
  /*void activator_inhibitor_reaction_derivative(const Vector<double> &C, const DenseMatrix <double> &dCdx,
