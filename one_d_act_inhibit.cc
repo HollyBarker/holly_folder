@@ -1976,10 +1976,11 @@ RefineableOneDAdvectionDiffusionReactionProblem()
  // Set the boundary conditions for this problem.
  // Make the domain periodic by setting the values at the left-hand boundary
  // equal to those on the right
- mesh_pt()->boundary_node_pt(left_boundary_id,i_node)->pin(0);
- mesh_pt()->boundary_node_pt(right_boundary_id,i_node)->pin(0);
+ //mesh_pt()->boundary_node_pt(left_boundary_id,i_node)->pin(0);
+ //mesh_pt()->boundary_node_pt(right_boundary_id,i_node)->pin(0);
 
- 
+ mesh_pt()->boundary_node_pt(left_boundary_id,i_node)
+  ->make_periodic(mesh_pt()->boundary_node_pt(right_boundary_id,i_node));
  // Loop over the elements to set up element-specific things that cannot
  // be handled by the (argument-free!) ELEMENT constructor: Pass pointer
  // to source function
