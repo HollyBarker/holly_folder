@@ -1415,8 +1415,8 @@ fill_in_generic_residual_contribution_adv_diff_react(
 		   {
 		    //This is adding the dRddCdx part only (found by
 		    //finite differences)
-		    jacobian(local_eqn,local_unknown) -=
-		    dRddCdx_FD(r,r2,i)*dpsidx(l2,i)*test(l)*W;
+		    //jacobian(local_eqn,local_unknown) -=
+		     //dRddCdx_FD(r,r2,i)*dpsidx(l2,i)*test(l)*W;
 		   }
 		  }
 		  //If the user specifies the equations for the derivatives
@@ -1461,8 +1461,8 @@ fill_in_generic_residual_contribution_adv_diff_react(
 		   {
 		    //This is adding dFddCdx part only (found by
 		    //finite differences)
-		    jacobian(local_eqn,local_unknown)-=
-		    dFddCdx_FD(r,r2,i)*dpsidx(l2,i)*test(l)*W;
+		    //jacobian(local_eqn,local_unknown)-=
+		     //dFddCdx_FD(r,r2,i)*dpsidx(l2,i)*test(l)*W;
 		   }
 		  }
 		  //Get dFdC from the user-specified function
@@ -1870,16 +1870,16 @@ namespace GlobalVariables
 				   const DenseMatrix <double> &dCdx,
 				   Vector<double> &R)
  {
-  R[0]=0.0;
-  //R[0] =C[0]*dCdx(0,0);
+  //R[0]=0.0;
+  R[0] =C[0]*dCdx(0,0);
  }
 
  void activator_inhibitor_f(const Vector<double> &C,
 				   const DenseMatrix <double> &dCdx,
 				   Vector<double> &F)
  {
-  //F[0]=0;
-  F[0]=-0.5*C[0]*C[0];
+  F[0]=0;
+  //F[0]=-0.5*C[0]*C[0];
  }
  
  /*void activator_inhibitor_reaction_derivative(const Vector<double> &C, const DenseMatrix <double> &dCdx,
