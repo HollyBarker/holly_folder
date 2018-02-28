@@ -1936,7 +1936,7 @@ RefineableOneDAdvectionDiffusionReactionProblem()
  add_time_stepper_pt(new BDF<4>);
  // Set up the mesh
  // Number of elements initially
- const unsigned n = 5000; //2;
+ const unsigned n = 2000; //2;
  // Domain length
  const double pi=acos(-1);
  const double length = 2*pi;
@@ -2100,8 +2100,8 @@ int main()
  GlobalVariables::Tau[0]=1.0;
  GlobalVariables::D[0]=0.1;
  //Set the timestep
- double dt = 0.1;
- unsigned nstep=10;
+ double dt = 0.01;
+ unsigned nstep=100;
  //Set up the problem
  //------------------
  // DREIGIAU: There's an inherent problem with the 1D elements. Doesn't
