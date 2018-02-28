@@ -2100,8 +2100,8 @@ int main()
  GlobalVariables::Tau[0]=1.0;
  GlobalVariables::D[0]=0.1;
  //Set the timestep
- double dt = 0.01;
- unsigned nstep=100;
+ double dt = 0.001;
+ unsigned nstep=1000;
  //Set up the problem
  //------------------
  // DREIGIAU: There's an inherent problem with the 1D elements. Doesn't
