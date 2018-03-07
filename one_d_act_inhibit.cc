@@ -57,8 +57,10 @@ namespace oomph
 /// \f[ 
 /// \tau_{i} \frac{\partial C_{i}}{\partial t} 
 /// + w_{j} \frac{\partial C_{i}}{\partial x_{j}} = 
-/// D_{i}\frac{\partial^2 C_{i}}{\partial x_j^2} = 
-/// - R_{i}(C_{i}) + f_{i}
+/// D_{i}\frac{\partial^2 C_{i}}{\partial x_j^2}
+/// +\frac{\partial}{\partial x_k}(F_i(C_j,\frac{\partial C_j}
+/// {\partial x_l}))
+/// - R_{i}(C_{j},\frac{\partial C_j}{\partial x_k}) - fct_{i}
 /// \f] 
 /// This contains the generic maths. Shape functions, geometric
 /// mapping etc. must get implemented in derived class.
@@ -96,9 +98,15 @@ public:
   const Vector<double> &c, const DenseMatrix<double> &dcdx,
   Vector<double> &F);
 
+/// \short Function pointer to derivative of F terms
  typedef void (*AdvectionDiffusionReactionFDerivFctPt)(
   const Vector<double> &c, const DenseMatrix<double> &dcdx,
   DenseMatrix<double> &dFdC);
+
+ /// \short Function pointer to tau terms
+ typedef void (*AdvectionDiffusionReactionTauFctPt)(
+  const Vector<double> &c, const DenseMatrix<double> &dcdx,
+  Vector<double> &Tau);
 
  /// \short Constructor: Initialise the Source_fct_pt, Wind_fct_pt,
  /// Reaction_fct_pt to null and initialise the dimensionless 
@@ -109,12 +117,11 @@ public:
 					 Reaction_deriv_fct_pt(0),
 					 F_fct_pt(0),
 					 F_deriv_fct_pt(0),
+					 Tau_fct_pt(0),
   ALE_is_disabled(false)
   {
    //Set diffusion coefficients to default
    Diff_pt = &Default_dimensionless_number;
-   //Set timescales to default
-   Tau_pt = &Default_dimensionless_number;
   }
  
  /// Broken copy constructor
@@ -329,18 +336,20 @@ public:
  /// Access function: Pointer to F derivatives function. Const version
  AdvectionDiffusionReactionFDerivFctPt f_deriv_fct_pt() const 
  {return F_deriv_fct_pt;}
+
+ /// Access function: Pointer to tau function
+ AdvectionDiffusionReactionTauFctPt& tau_fct_pt() 
+  {return Tau_fct_pt;}
+ 
+ /// Access function: Pointer to tau function. Const version
+ AdvectionDiffusionReactionTauFctPt tau_fct_pt() const 
+  {return Tau_fct_pt;}
  
  /// Vector of diffusion coefficients
  const Vector<double> &diff() const {return *Diff_pt;}
 
  /// Pointer to vector of diffusion coefficients
  Vector<double>* &diff_pt() {return Diff_pt;}
-
- /// Vector of dimensionless timescales
- const Vector<double> &tau() const {return *Tau_pt;}
-
- /// Pointer to vector of dimensionless timescales
- Vector<double>* &tau_pt() {return Tau_pt;}
 
  /// \short Get source term at (Eulerian) position x. This function is
  /// virtual to allow overloading in multi-physics problems where
@@ -414,10 +423,9 @@ public:
  /// concentration variables. If no explicit function pointer is set,
  /// these will be calculated by finite differences
 
- //This is JUST the drdc bit, not dr/d(dcdx) (dr/d(dcdx) is used when R
- //depends on the spatial gradient of c).
- 
- virtual void get_dRdC_FD_adv_diff_react(const unsigned& ipt,
+ //This is JUST the drdc bit, not dr/d(dcdx).
+ //(dr/d(dcdx) is used when R depends on dc/dx.
+ virtual void get_dRdC_adv_diff_react(const unsigned& ipt,
 					 const Vector<double> &s,
 					 const Vector<double> &C,
 					 const DenseMatrix <double> &dCdx,
@@ -425,27 +433,31 @@ public:
 
   const
  {
+  // Throw error if reaction function pointer not set
+  // If R term is unused, set R=0
   #ifdef PARANOID
   if (Reaction_fct_pt==0)
   {
-   // Throw an error as we need F_fct_pt to be set here...
-   throw OomphLibError("Function pointer has not been set!",
+   // Throw an error as we need C_fct_pt to be set here...
+   throw OomphLibError("Reaction function pointer has not been set!",
 		       OOMPH_EXCEPTION_LOCATION,
 		       OOMPH_CURRENT_FUNCTION);
   }
 #endif
-  //If no reaction pointer set, return zero
 
   //Local copy of the unknowns and their derivatives
   Vector<double> C_local = C;
   DenseMatrix<double> dCdx_local=dCdx;
-  //Finite differences
+  
+  //Initialise variables for FD
   Vector<double> R(NREAGENT,0.0);
   Vector<double> R_plus_C(NREAGENT,0.0);
   Vector<double> R_minus_C(NREAGENT,0.0);
-  //Get the initial reaction terms
+  
+  //General small FD step
   const double fd_step = GeneralisedElement::Default_fd_jacobian_step;
-  //Loop over the reagents (equations)
+  
+  //For each reagent
   for(unsigned p=0;p<NREAGENT;p++)
   {
    //Store the old value
@@ -454,32 +466,34 @@ public:
    C_local[p] += fd_step;
    //Get the new values
    (*Reaction_fct_pt)(C_local,dCdx_local,R_plus_C);
+   
    //Reset the values
    C_local[p] = old_var_C;
-   //Decrement the values
-   C_local[p] -= fd_step;
-	 
+   //Decrement the value
+   C_local[p] -= fd_step;	 
    //Get the new values
    (*Reaction_fct_pt)(C_local,dCdx_local, R_minus_C);
 	 
-   //Assemble the column of the jacobian
+   //For each equation (each reaction term)
    for(unsigned r=0;r<NREAGENT;r++)
    {
+    //FD equation for dRdC
     dRdC(r,p) += (R_plus_C[r] - R_minus_C[r])/(2.0*fd_step);
    }
 
    //Reset the value
    C_local[p] = old_var_C;
+   
   }//End loop over the reagents
  }
 
- /// \short Get the derivatives of the F terms with respect to the 
+ /// \short Get the derivatives of the reaction terms with respect to the 
  /// concentration variables. If no explicit function pointer is set,
  /// these will be calculated by finite differences
 
- //This is JUST the dr/(dcdx) bit, not drdc. (dr/d(dcdx) is used when R
- //depends on c as well as the spatial gradient of c).
- virtual void get_dRddCdx_FD_adv_diff_react(const unsigned& ipt,
+ //This is JUST the dr/(dcdx) bit, not drdc.
+ //dr/d(dcdx) is used when R depends on dc/dx.
+ virtual void get_dRddCdx_adv_diff_react(const unsigned& ipt,
 					 const Vector<double> &s,
 					 const Vector<double> &C,
 					 const DenseMatrix <double> &dCdx,
@@ -488,10 +502,12 @@ public:
   const
 
  {
+  // Throw error if reaction function pointer not set
+  // If R term is unused, set R=0
   #ifdef PARANOID
   if (Reaction_fct_pt==0)
   {
-   // Throw an error as we need F_fct_pt to be set here...
+   // Throw an error as we need R_fct_pt to be set here...
    throw OomphLibError("Function pointer has not been set!",
 		       OOMPH_EXCEPTION_LOCATION,
 		       OOMPH_CURRENT_FUNCTION);
@@ -500,25 +516,25 @@ public:
   //Local copy of the unknowns and their derivatives
   Vector<double> C_local = C;
   DenseMatrix<double> dCdx_local= dCdx;
-  //Finite differences
+  
+  //Initialise variables for FD
   Vector<double> R(NREAGENT,0.0);
   Vector<double> R_plus_dCdx(NREAGENT,0.0);
   Vector<double> R_minus_dCdx(NREAGENT,0.0);
-  //Get the initial reaction terms
+  
+  //General small FD step
   const double fd_step = GeneralisedElement::Default_fd_jacobian_step;
-  //Now loop over all the reagents
-  //Holly - want to check the order of these loops is ok, and the +=
 
   //For each equation (each reaction term)
   for(unsigned r=0;r<NREAGENT;r++)
   {
-   //For each reagent within the equation (concentrations which the R depends on) 
+   //For each reagent within the reaction term 
    for(unsigned p=0;p<NREAGENT;p++)
    {
     //For each spatial dimension
     for(unsigned i=0;i<DIM;i++)
     {
-     //HOLLYYYYYYY
+     //Store the old value
      double old_var_dCdx= dCdx_local(p,i);
      //Increment the value
      dCdx_local(p,i) += fd_step;
@@ -529,12 +545,12 @@ public:
 
      //Decrement the value
      dCdx_local(p,i)-=fd_step;
-     //Get the new value
+     //Get the new value for each equation decreased in the dC_p/dx_i direction
      (*Reaction_fct_pt)(C_local,dCdx_local,R_minus_dCdx);
      //Reset the value
      dCdx_local(p,i)=old_var_dCdx;
      
-     //Build the rank 3 tensor
+     //Build the rank 3 tensor with FD equation
      dRddCdx(r,p,i)+=(R_plus_dCdx[r] - R_minus_dCdx[r])/(2.0*fd_step);
     }
    }
@@ -567,9 +583,9 @@ public:
  /// concentration variables. If no explicit function pointer is set,
  /// these will be calculated by finite differences
 
- //This is JUST the dfdc bit, not df/d(dcdx) (df/d(dcdx) is used when F
- //depends on the spatial gradient of c.
-  virtual void get_dFdC_FD_adv_diff_react(const unsigned& ipt,
+ //This is JUST the dfdc bit, not df/d(dcdx).
+ //(df/d(dcdx) is used when F depends on the dc/dx.
+  virtual void get_dFdC_adv_diff_react(const unsigned& ipt,
 					 const Vector<double> &s,
 					 const Vector<double> &C,
 					 const DenseMatrix <double> &dCdx,
@@ -577,6 +593,8 @@ public:
 
   const
  {
+  // Throw error if F function pointer not set
+  // If F term is unused, set F=0
 #ifdef PARANOID
   if (F_fct_pt==0)
   {
@@ -587,19 +605,19 @@ public:
   }
 #endif
   
-  //If no reaction pointer set, return zero
-
   //Local copy of the unknowns and their derivatives
   Vector<double> C_local = C;
   DenseMatrix<double> dCdx_local=dCdx;
-  //Finite differences
+  
+  //Initialise variables for FD
   Vector<double> F(NREAGENT,0.0);
   Vector<double> F_plus_C(NREAGENT,0.0);
   Vector<double> F_minus_C(NREAGENT,0.0);
-  //Get the initial reaction terms
+  
+  //General small FD step
   const double fd_step = GeneralisedElement::Default_fd_jacobian_step;
-  //Now loop over all the reagents
-  //Holly - want to check the order of these loops is ok, and the += 
+  
+  //For all the reagents
   for(unsigned p=0;p<NREAGENT;p++)
   {
    //Store the old value
@@ -608,6 +626,7 @@ public:
    C_local[p] += fd_step;
    //Get the new values
    (*F_fct_pt)(C_local,dCdx_local,F_plus_C);
+   
    //Reset the values
    C_local[p] = old_var_C;
    //Decrement the values
@@ -615,9 +634,10 @@ public:
    //Get the new values
    (*F_fct_pt)(C_local,dCdx_local, F_minus_C);
 	 
-   //Assemble the column of the jacobian
+   //For all the equations (all the F terms)
    for(unsigned r=0;r<NREAGENT;r++)
    {
+    //FD equation for dF/dC
     dFdC(r,p) += (F_plus_C[r] - F_minus_C[r])/(2.0*fd_step);
    }
    //Reset the value
@@ -625,7 +645,7 @@ public:
   }//End loop over the reagents
  }
 
- virtual void get_dFddCdx_FD_adv_diff_react(const unsigned& ipt,
+ virtual void get_dFddCdx_adv_diff_react(const unsigned& ipt,
 					 const Vector<double> &s,
 					 const Vector<double> &C,
 					 const DenseMatrix <double> &dCdx,
@@ -634,6 +654,8 @@ public:
   const
 
  {
+  // Throw error if F function pointer not set
+  // If F term is unused, set F=0
   #ifdef PARANOID
   if (F_fct_pt==0)
   {
@@ -646,12 +668,15 @@ public:
   //Local copy of the unknowns and their derivatives
   Vector<double> C_local = C;
   DenseMatrix<double> dCdx_local= dCdx;
-  //Finite differences
+  
+  //Initialise variables for FD
   Vector<double> F(NREAGENT,0.0);
   Vector<double> F_plus_dCdx(NREAGENT,0.0);
   Vector<double> F_minus_dCdx(NREAGENT,0.0);
-  //Get the initial reaction terms
+  
+  //General small FD step
   const double fd_step = GeneralisedElement::Default_fd_jacobian_step;
+  
   //For each reagent (each equation)
   for(unsigned r=0;r<NREAGENT;r++)
   {
@@ -672,12 +697,12 @@ public:
 
      //Decrement the value
      dCdx_local(p,i)-=fd_step;
-     //Get the new value
+     //Get the new value for each equation decreased in the dC_p/dx_i direction
      (*F_fct_pt)(C_local,dCdx_local,F_minus_dCdx);
      //Reset the value
      dCdx_local(p,i)=old_var_dCdx;
      
-     //Build the rank 3 tensor
+     //Build the rank 3 tensor with FD equation
      dFddCdx(r,p,i)+=(F_plus_dCdx[r] - F_minus_dCdx[r])/(2.0*fd_step);
     }
    }
@@ -717,6 +742,23 @@ public:
       }
     }
   }
+
+ ///Get tau
+ void get_tau_adv_diff_react(const Vector<double> &C,
+	      const DenseMatrix<double> &dCdx,
+	      Vector<double>& Tau)
+ {
+   //If no tau vector has been set, return zero
+   if(Tau_fct_pt==0) 
+    {
+     for(unsigned r=0;r<NREAGENT;r++){Tau[r] = 1.0;}
+    }
+   else
+    {
+     // Get tau
+     (*Tau_fct_pt)(C,dCdx,Tau);
+    }
+ }
  
  /// Add the element's contribution to its residual vector (wrapper)
  void fill_in_contribution_to_residuals(Vector<double> &residuals)
@@ -819,9 +861,6 @@ protected:
  /// Pointer to global diffusion coefficients
  Vector<double> *Diff_pt;
 
- /// Pointer to global timescales
- Vector<double> *Tau_pt;
-
  /// Pointer to source function:
  AdvectionDiffusionReactionSourceFctPt Source_fct_pt;
  
@@ -839,6 +878,9 @@ protected:
 
  //Pointer to F derivatives
  AdvectionDiffusionReactionFDerivFctPt F_deriv_fct_pt;
+
+ //Pointer to Tau function
+ AdvectionDiffusionReactionTauFctPt Tau_fct_pt;
  
  /// \short Boolean flag to indicate if ALE formulation is disabled when 
  /// time-derivatives are computed. Only set to true if you're sure
@@ -1150,7 +1192,6 @@ fill_in_generic_residual_contribution_adv_diff_react(
  unsigned flag)
 
 {
- //std::cout<<flag<<std::endl;
  //Find out how many nodes there are
  const unsigned n_node = nnode();
 
@@ -1173,9 +1214,6 @@ fill_in_generic_residual_contribution_adv_diff_react(
 
  //Get diffusion coefficients
  Vector<double> D = diff();
-
- //Get the timescales
- Vector<double> T = tau();
 
  //Integers used to store the local equation number and local unknown
  //indices for the residuals and jacobians
@@ -1257,6 +1295,10 @@ fill_in_generic_residual_contribution_adv_diff_react(
    Vector<double> wind(DIM,0.0);
    get_wind_adv_diff_react(ipt,s,interpolated_x,wind);
 
+   //Get Tau
+   Vector<double> T(NREAGENT,0.0);
+   get_tau_adv_diff_react(interpolated_c,interpolated_dcdx,T);
+
    //Get reaction terms
    Vector<double> R(NREAGENT,0.0);
    get_reaction_adv_diff_react(ipt,interpolated_c,interpolated_dcdx,R);
@@ -1269,8 +1311,8 @@ fill_in_generic_residual_contribution_adv_diff_react(
    RankThreeTensor<double> dRddCdx_FD(NREAGENT,NREAGENT,DIM,0.0);
    if(flag)
     {
-     get_dRdC_FD_adv_diff_react(ipt,s,interpolated_c,interpolated_dcdx,dRdC_FD);
-     get_dRddCdx_FD_adv_diff_react(ipt,s,interpolated_c,interpolated_dcdx,dRddCdx_FD);
+     get_dRdC_adv_diff_react(ipt,s,interpolated_c,interpolated_dcdx,dRdC_FD);
+     get_dRddCdx_adv_diff_react(ipt,s,interpolated_c,interpolated_dcdx,dRddCdx_FD);
     }
    
    //Get F terms
@@ -1282,22 +1324,15 @@ fill_in_generic_residual_contribution_adv_diff_react(
    //of these derivatives. One is a rank 2 tensor...
    DenseMatrix<double> dFdC_FD(NREAGENT,NREAGENT,0.0);
    //... and the other is rank 3.
-   
-   
    RankThreeTensor<double> dFddCdx_FD(NREAGENT,NREAGENT,DIM, 0.0);
    if(flag)
    {
-    get_dFdC_FD_adv_diff_react(ipt,s,interpolated_c,interpolated_dcdx,dFdC_FD);
-    get_dFddCdx_FD_adv_diff_react(ipt,s,interpolated_c,interpolated_dcdx,dFddCdx_FD);
+    get_dFdC_adv_diff_react(ipt,s,interpolated_c,interpolated_dcdx,dFdC_FD);
+    get_dFddCdx_adv_diff_react(ipt,s,interpolated_c,interpolated_dcdx,dFddCdx_FD);
    }
-   
-   //If we are getting the jacobian and the user has specified the
-   //deriavtives of R and/or F with respect to C, these matrices
-   //will be used for the derivative terms.
-   //HOLLYYYYY where should we multiply by psi? In the Jacobian
-   //or in the driver where we define the dRdC/dFdC for the particular
-   //problem?? I have multiplied by psi in the jacobian here.
-   //Review later.
+
+   //If the derivatives of F and R are specified in the driver,
+   //These variables will be used instead
    DenseMatrix<double> dRdC(NREAGENT,NREAGENT,0.0);
    DenseMatrix<double> dFdC(NREAGENT,NREAGENT,0.0);
    
@@ -1317,10 +1352,6 @@ fill_in_generic_residual_contribution_adv_diff_react(
        if(local_eqn >= 0)
         {
          // Add body force/source/reaction term and time derivative
-	 // Holly - for my equations the second order part of R will
-	 // have to be in the other bit of the residual calculation
-	 // since it will be of the form dRdx*dCdx in the residual
-	 // equations
          residuals[local_eqn] -= 
           (T[r]*dcdt[r] + source[r] + R[r])*test(l)*W;
          
@@ -1368,7 +1399,7 @@ fill_in_generic_residual_contribution_adv_diff_react(
                    //Add the mass matrix term
                    if(flag==2)
                     {
-		     //Holly - what is the mass matrix and why does it have tau?
+		     //Hollyyyyy - why is the mass matrix multiplied by tau?
                      mass_matrix(local_eqn,local_unknown)
                       += T[r]*test(l)*psi(l2)*W;
                     }
@@ -1388,13 +1419,11 @@ fill_in_generic_residual_contribution_adv_diff_react(
 		 //The next terms are in both the diag and non-diag parts of the
 		 //matrix Jacobian
 		 //Now add the cross-reaction terms
-		 //Holly - dRdC(r,p) already includes dRdC*psi and dRd(dC/dx)*dpsidx
-		 //so I don't think I need to add anything
-		 
+		
 		 if(Reaction_fct_pt==0)
 		 {
 		  dRdC_FD(r,r2) = 0.0;
-		  for (int i=0;i<DIM;i++)
+		  for (unsigned i=0;i<DIM;i++)
 		  {
 		   dRddCdx_FD(r,r2,i)=0.0;
 		  } 
@@ -1470,7 +1499,7 @@ fill_in_generic_residual_contribution_adv_diff_react(
 		  {
 		   (*F_deriv_fct_pt)(interpolated_c,interpolated_dcdx,dFdC);
 		   jacobian(local_eqn,local_unknown)-=
-		    dRdC(r,r2)*psi(l2)*test(l)*W;
+		    dFdC(r,r2)*psi(l2)*test(l)*W;
 		  }
 		 }
                 }
@@ -1848,6 +1877,22 @@ template class QAdvectionDiffusionReactionElement<2,3,2>;
 template class QAdvectionDiffusionReactionElement<2,3,3>;
 template class QAdvectionDiffusionReactionElement<2,3,4>;
 
+//Four reagents Hollyyyyy: no idea if this exists
+template class AdvectionDiffusionReactionEquations<4,1>;
+template class AdvectionDiffusionReactionEquations<4,2>;
+template class AdvectionDiffusionReactionEquations<4,3>;
+
+template class QAdvectionDiffusionReactionElement<4,1,2>;
+template class QAdvectionDiffusionReactionElement<4,1,3>;
+template class QAdvectionDiffusionReactionElement<4,1,4>;
+
+template class QAdvectionDiffusionReactionElement<4,2,2>;
+template class QAdvectionDiffusionReactionElement<4,2,3>;
+template class QAdvectionDiffusionReactionElement<4,2,4>;
+
+template class QAdvectionDiffusionReactionElement<4,3,2>;
+template class QAdvectionDiffusionReactionElement<4,3,3>;
+template class QAdvectionDiffusionReactionElement<4,3,4>;
 }
 
 
@@ -1855,6 +1900,49 @@ template class QAdvectionDiffusionReactionElement<2,3,4>;
 //DEMODRIVER FILE STARTS HERE
 //===========================
 
+//LIC// ====================================================================
+//LIC// This file forms part of oomph-lib, the object-oriented,
+//LIC// multi-physics finite-element library, available
+//LIC// at http://www.oomph-lib.org.
+//LIC//
+//LIC//    Version 1.0; svn revision $LastChangedRevision: 1282 $
+//LIC//
+//LIC// $LastChangedDate: 2017-01-16 08:27:53 +0000 (Mon, 16 Jan 2017) $
+//LIC//
+//LIC// Copyright (C) 2006-2016 Matthias Heil and Andrew Hazel
+//LIC//
+//LIC// This library is free software; you can redistribute it and/or
+//LIC// modify it under the terms of the GNU Lesser General Public
+//LIC// License as published by the Free Software Foundation; either
+//LIC// version 2.1 of the License, or (at your option) any later version.
+//LIC//
+//LIC// This library is distributed in the hope that it will be useful,
+//LIC// but WITHOUT ANY WARRANTY; without even the implied warranty of
+//LIC// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+//LIC// Lesser General Public License for more details.
+//LIC//
+//LIC// You should have received a copy of the GNU Lesser General Public
+//LIC// License along with this library; if not, write to the Free Software
+//LIC// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+//LIC// 02110-1301  USA.
+//LIC//
+//LIC// The authors may be contacted at oomph-lib@maths.man.ac.uk.
+//LIC//
+//LIC//====================================================================
+
+/// General form of the equations which are inputted here
+/// Hollyyyyy : I know the indexing is wrong.
+/// \f[ 
+/// \tau_{i} \frac{\partial C_{i}}{\partial t} 
+/// + w_{j} \frac{\partial C_{i}}{\partial x_{j}}
+/// + R_{i}(C_{j},\frac{\partial C_j}{\partial x_k})
+/// + fct_{i}= 
+/// D_{i}\frac{\partial^2 C_{i}}{\partial x_j^2}
+/// +\frac{\partial}{\partial x_k}(F_i(C_j,\frac{\partial C_j}
+/// {\partial x_l}))
+/// \f]
+
+ 
 //Standard C++ namespace
 using namespace std;
 //The oomph-lib namespace
@@ -1862,31 +1950,117 @@ using namespace oomph;
 //Define Global variables in a namespace to keep things neat
 namespace GlobalVariables
 {
+ //Equations for time dependent concentration, temperature and f
+ //(local hydride volume fraction)
+ //0 corresponds to the concentration equation
+ //1 corresponds to the temperature equation
+ //2 corresponds to the stress equation
+ //3 corresponds to the volume fraction equation
+ 
  //The two timescale parameters (both set to one initially)
- Vector<double> Tau(1,1.0);
+ Vector<double> Tau(4,1.0);
  //The two diffusion parameters (both set to one initially)
- Vector<double> D(1,1.0);
+ Vector<double> D(4,1.0);
+ 
+ double A1=1.0;
+ double A2=1.0;
+ double A3=1.0;
+ double A4=1.0;
+ double A5=1.0;
+ double A6=1.0;
+ double A7=1.0;
+
+
+ double f_e=1.0;
+ double alpha=1.0;
+ double T0=1.0;
+ double C0=1.0;
+ double Vh=1.0;
+ double VHr=1.0;
+ double VU=1.0;
+ //Hollyyyyy: Is Cb something that needs to be calculated?
+ double Cb=1.0;
+
+ double Q=1.0;
+ double R=8.31;
+
+ double B1=alpha*T0;
+ double B2=C0*Vh;
+ double B3=VHr/VU;
+
+ //This is allocated properly in the main
+ double dfdt_FD=0.0;
+
+ //Function to set tau(C)
+ void activator_inhibitor_tau(const Vector<double> &C,
+			      const DenseMatrix <double> &dCdx,
+			      Vector <double> &Tau)
+ {
+  //Hollyyyyy: is this tau[0] going to work? There are C depencies
+  //in the equations for F and R, but I need to work out if this is
+  //going to be evaluated correctly. I think it will be, because
+  //when the Jacobian asks for Tau[0], it will be taken from here.
+  Tau[0]=1-C[3];
+  Tau[1]=A1;
+  Tau[2]=0.0;
+  Tau[3]=1.0;
+ }
+ 
+ //Function to set reaction term
  void activator_inhibitor_reaction(const Vector<double> &C,
 				   const DenseMatrix <double> &dCdx,
 				   Vector<double> &R)
  {
-  R[0]=0.0;
+  R[0]=dfdt_FD*(Cb-C[0]);
+  R[1]=-(A3*C[1]*dCdx(0,0)*dCdx(0,0)/C[0]
+	 +A4*dCdx(0,0)*dCdx(1,0)/C[1]
+	 +A5*dCdx(0,0)*dCdx(2,0)
+	 +A6*C[0]*dCdx(1,0)*dCdx(2,0)/(C[1]*C[1])
+	 +A7*C[0]*dCdx(3,0)*dCdx(3,0)/C[1]);
+  R[2]=-(B1*dCdx(1,0)+B2*((1-C[3])*dCdx(0,0)-C[0]*dCdx(3,0))+B3*dCdx(3,0));
+  R[3]=-dfdt_FD;
+
+  //Hollyyyyy:This is for the viscous Burgers when I need to get the graphs
+  //for report
   //R[0] =C[0]*dCdx(0,0);
+  //R[0]=0.0;
  }
 
+ //Function to set F term
  void activator_inhibitor_f(const Vector<double> &C,
 				   const DenseMatrix <double> &dCdx,
 				   Vector<double> &F)
  {
+  F[0]=(Q*C[0]*dCdx(1,0))/(R*T0*C[1]*C[1])-(Vh*C[0]*dCdx(2,0))/(R*T0*C[1]);
+  F[1]=0.0;
+  F[2]=0.0;
+  F[3]=0.0;
+
+  //Hollyyyyy:This is for the viscous Burgers when I need to get the graphs
+  //for report
   //F[0]=0;
-  F[0]=-0.5*C[0]*C[0];
+  //F[0]=-0.5*C[0]*C[0];
  }
- 
- /*void activator_inhibitor_reaction_derivative(const Vector<double> &C, const DenseMatrix <double> &dCdx,
-                                 DenseMatrix<double> &dRdC)
+
+ //Function to set R derivative term by hand
+ /*
+ void activator_inhibitor_reaction_derivative(const Vector<double> &C, 
+					      const DenseMatrix <double> &dCdx,
+					      DenseMatrix<double> &dRdC)
  {
   dRdC(0,0) = 1.0;
-  }*/
+ }
+ */
+
+ //Function to set F derivative term by hand
+ /*
+ void activator_inhibitor_F_derivative(const Vector<double> &C,
+				       const DenseMatrix <double> &dCdx,
+				       DenseMatrix<double> &dFdC)
+ {
+  dFdC(0,0) = 1.0;
+ }
+ */
 
  void get_exact_u(const double& t,
 		  const Vector<double>& x,
@@ -1925,6 +2099,7 @@ private:
  ///Internal storage for the timestep
  double Dt;
 }; // End of problem class
+
 //=====start_of_constructor===============================================
 /// Constructor for AdvectionDiffusionReaction problem:
 //========================================================================
@@ -1946,9 +2121,9 @@ RefineableOneDAdvectionDiffusionReactionProblem()
   new /*Refineable*/OneDMesh<ELEMENT>(n,length,Problem::time_stepper_pt());
 
  /*
+ //Hollyyyyy - this was part of de-bugging
  unsigned nnode=mesh_pt()->nnode();
-
- //Hollyyyyy
+ 
  //Loop over and set all previous time values to zero 
  for (unsigned i=0;i<nnode;i++)
  {
@@ -1973,14 +2148,22 @@ RefineableOneDAdvectionDiffusionReactionProblem()
  // only one node on each boundary)
  unsigned i_node=0;
  
+ //----------------------------------------------
  // Set the boundary conditions for this problem.
- // Make the domain periodic by setting the values at the left-hand boundary
- // equal to those on the right
+ //----------------------------------------------
+ 
+ // Set zero Dirichlet conditions for the boundaries...
  mesh_pt()->boundary_node_pt(left_boundary_id,i_node)->pin(0);
  mesh_pt()->boundary_node_pt(right_boundary_id,i_node)->pin(0);
 
+ // ...or make the domain periodic by setting the values at the left-hand boundary
+ // equal to those on the right
  //mesh_pt()->boundary_node_pt(left_boundary_id,i_node)
  //->make_periodic(mesh_pt()->boundary_node_pt(right_boundary_id,i_node));
+ 
+ //----------------------------------------------
+ //----------------------------------------------
+ 
  // Loop over the elements to set up element-specific things that cannot
  // be handled by the (argument-free!) ELEMENT constructor: Pass pointer
  // to source function
@@ -1989,25 +2172,23 @@ RefineableOneDAdvectionDiffusionReactionProblem()
   {
    // Upcast from GeneralisedElement to the present element
    ELEMENT *elem_pt = dynamic_cast<ELEMENT*>(mesh_pt()->element_pt(i));
-   //Holly - there is no wind/ source acting since this is where the
-   //pointers to those functions would be assigned.
-   //Set the timescales
-   elem_pt->tau_pt() = &GlobalVariables::Tau;
+   
    //Set the diffusion coefficients
    elem_pt->diff_pt() = &GlobalVariables::D;
    //Set the reaction terms
    elem_pt->reaction_fct_pt() = &GlobalVariables::activator_inhibitor_reaction;
-    //And their derivatives
+   //And their derivatives
    elem_pt->reaction_deriv_fct_pt() = 0;
    //Set the F terms
    elem_pt->f_fct_pt() = &GlobalVariables::activator_inhibitor_f;
    //And their derivatives
    elem_pt->f_deriv_fct_pt() = 0;
-   /*
-     &GlobalVariables::activator_inhibitor_reaction_derivative;*/  
+   //Set the timescales
+   elem_pt->tau_fct_pt() = &GlobalVariables::activator_inhibitor_tau;
   }
  // Set up equation numbering scheme
  cout << "Number of equations: " << assign_eqn_numbers() << std::endl;
+ 
 } // End of constructor
 //=====================================================================
 /// Set the initial conditions 
@@ -2030,7 +2211,9 @@ set_initial_condition()
 
   //Set the IC
   nod_pt->set_value(0,IC);
-  
+  nod_pt->set_value(0,IC);
+  nod_pt->set_value(0,0.0);
+  nod_pt->set_value(0,0.0);
  }
  //Document the initial solution
  ofstream filename("RESLT/initial.dat");
@@ -2089,19 +2272,37 @@ void RefineableOneDAdvectionDiffusionReactionProblem<ELEMENT>::timestep(
 //======start_of_main=====================================================
 /// Driver code for 1D AdvectionDiffusionReaction problem
 //========================================================================
+
+/// General form of the equations which are inputted here
+/// Hollyyyyy : I know the indexing is wrong.
+/// \f[ 
+/// \tau_{i} \frac{\partial C_{i}}{\partial t} 
+/// + w_{j} \frac{\partial C_{i}}{\partial x_{j}} = 
+/// D_{i}\frac{\partial^2 C_{i}}{\partial x_j^2}
+/// +\frac{\partial}{\partial x_k}(F_i(C_j,\frac{\partial C_j}
+/// {\partial x_l}))
+/// - R_{i}(C_{j},\frac{\partial C_j}{\partial x_k}) - fct_{i}
+/// \f]
+
 int main()
 {
  //Diffusive length-scale
  //double epsilon = 0.05;
  //Set the control parameters
- //GlobalVariables::Tau[0] = 0.2;
- //GlobalVariables::D[0] = epsilon*epsilon;
- //GlobalVariables::A = -0.4;
- GlobalVariables::Tau[0]=1.0;
  GlobalVariables::D[0]=0.1;
  //Set the timestep
  double dt = 0.001;
- unsigned nstep=1000;
+ unsigned nstep=100;
+ 
+ //Need a variable for the characteristic timescale in the
+ //equation for the volume fraction, because thus is not
+ //the same as the tau in the basic equations.
+ double char_time=1.0;
+ //Putting in the volume fraction timestep here. I can't think how
+ //else to put df/dt into the other equations. 
+ GlobalVariables::dfdt_FD=GlobalVariables::f_e/(char_time+dt);
+
+ 
  //Set up the problem
  //------------------
  // DREIGIAU: There's an inherent problem with the 1D elements. Doesn't
@@ -2110,7 +2311,7 @@ int main()
  // Create the problem with 1D three-node refineable elements from the
  // RefineableLineAdvectionDiffusionReactionElement family.
  RefineableOneDAdvectionDiffusionReactionProblem<
-  /*Refineable*/QAdvectionDiffusionReactionElement<1,1,3> > problem;
+  /*Refineable*/QAdvectionDiffusionReactionElement<4,1,3> > problem;
  //Take four levels of uniform refinement to start things off
  //for(unsigned i=0;i<4;i++) { problem.refine_uniformly(); }
  //Now timestep the problem
