@@ -27,7 +27,7 @@ one_d_act_inhibit_SOURCES = one_d_act_inhibit.cc
 # Required libraries:
 # $(FLIBS) is included in case the solver involves fortran sources.
 one_d_act_inhibit_LDADD = -L@libdir@  \
-	                     -lgeneric $(EXTERNAL_LIBS) $(FLIBS)
+	                     -lgeneric $(EXTERNAL_LIBS) $(FLIBS) 
 
 # Sources for first executable
 test_SOURCES = test.cc
