@@ -262,7 +262,8 @@ one_d_act_inhibit.o: one_d_act_inhibit.cc \
   ../../config.h \
   /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic/stacktrace.h \
   /usr/include/execinfo.h \
-  /Users/hollybarker/Documents/oomphlib/trunk/build/include/meshes/one_d_mesh.h
+  /Users/hollybarker/Documents/oomphlib/trunk/build/include/meshes/one_d_mesh.h \
+  flux_elements.h
 
 /Users/hollybarker/Documents/oomphlib/trunk/build/include/generic.h:
 
@@ -907,3 +908,5 @@ one_d_act_inhibit.o: one_d_act_inhibit.cc \
 /usr/include/execinfo.h:
 
 /Users/hollybarker/Documents/oomphlib/trunk/build/include/meshes/one_d_mesh.h:
+
+flux_elements.h:
