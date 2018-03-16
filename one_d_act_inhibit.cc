@@ -2225,11 +2225,6 @@ RefineableOneDAdvectionDiffusionReactionProblem()
  
  // The ID of the rightmost boundary
  unsigned right_boundary_id=1;
-
- // Which node do we want on each boundary (1D mesh means there's
- // only one node on each boundary)
- unsigned i_node=0;
-
  
  //Hollyyyyy: below will need to be changed when going into
  //2D. Creates flux elements on the inner and outer boundaries.
