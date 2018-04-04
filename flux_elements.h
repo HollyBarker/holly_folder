@@ -108,6 +108,7 @@ public:
   {
    //Call the generic residuals function with flag set to 0
    //using a dummy matrix
+   std::cout<<"doing the flux fill in...duals"<<std::endl;
    fill_in_generic_residual_contribution_adv_diff_react_flux(
     residuals,GeneralisedElement::Dummy_matrix,0);
   }
@@ -430,7 +431,6 @@ fill_in_generic_residual_contribution_adv_diff_react_flux(
  {
   flux_nodal_index[i]=i;
  }
- 
  //Set the Vector to hold local coordinates
  Vector<double> s(Dim-1);
  
@@ -443,12 +443,10 @@ fill_in_generic_residual_contribution_adv_diff_react_flux(
  // Locally cache the index at which the variable is stored
  //const unsigned u_index_adv_diff_react = U_index_adv_diff_react;
 
-
  //Loop over the integration points
  //--------------------------------
  for(unsigned ipt=0;ipt<n_intpt;ipt++)
   {
-
    //Assign values of s
    for(unsigned i=0;i<(Dim-1);i++) {s[i] = integral_pt()->knot(ipt,i);}
    
@@ -473,7 +471,7 @@ fill_in_generic_residual_contribution_adv_diff_react_flux(
 
    //Vector to hold the unknowns from the bulk element
    Vector<double> C(Nreagent,0.0);
-
+   
    //Loop over the reagents and get C
    for(unsigned r=0;r<Nreagent;r++)
    {
@@ -489,32 +487,45 @@ fill_in_generic_residual_contribution_adv_diff_react_flux(
        interpolated_x[i] += nodal_position(l,i)*psif[l];
       }
     }
-   
+  
    //Get the imposed flux
-   Vector<double> flux;
+   Vector<double> flux(Nreagent,0.0);
+   std::cout<<interpolated_x.size()<<std::endl;
+   std::cout<<C.size()<<std::endl;
+   std::cout<<flux.size()<<std::endl;
    
    get_flux(interpolated_x,C,flux);
-   
+ 
    //Now add to the appropriate equations
 
    for(unsigned i=0;i<n_flux;i++)
    {
+  
     //Loop over the test functions
     for(unsigned l=0;l<n_node;l++)
     {
+   
      //Set the local equation number
      local_eqn = nodal_local_eqn(l,flux_nodal_index[i]);
+    
      /*IF it's not a boundary condition*/
      if(local_eqn >= 0)
      {
+ 
       //Add the prescribed flux terms
       residuals[local_eqn] += flux[i]*testf[l]*W;
-         
+
       // Imposed traction doesn't depend upon the solution, 
       // --> the Jacobian is always zero, so no Jacobian
       // terms are required
      }
     }//End loop over test functions
+    if(local_eqn>=0)
+    {
+      std::cout<<"Nreagent:  "<<i<<std::endl;
+      std::cout<<"local eq no:   "<<local_eqn<<std::endl;
+      std::cout<<"flux residual:    "<<residuals[local_eqn]<<std::endl;
+    }
    }//End loop over fluxes
   }//End loop over integration points
 }
