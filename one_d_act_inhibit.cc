@@ -95,7 +95,7 @@ namespace GlobalVariables
  double C0=1.0;
 
  //Diffusivity (J.B. Condon - 1974) (assumed constant) [m^2 s^-1]
- double diffusivity=(1.9e-6)*exp(-5820/T0);
+ double diffusivity=1.0;//(1.9e-6)*exp(-5820/T0);
 
  //Partial molal volume of hydrogen (Dutton 1977) [m^3 mol^-1]
  double Vh=7e-7;
@@ -186,7 +186,7 @@ namespace GlobalVariables
 		 +A6*C[0]*dCdx(1,0)*dCdx(2,0)/(C[1]*C[1])
 		 +A7*C[0]*dCdx(2,0)*dCdx(2,0)/C[1]);
   R[2]=dCdx(2,0);
-  R[3]=C[2]-(dCdx(3,0)-B1*C[1]-(B2*C[4]+(1-C[4])*B3*C[0]));
+  R[3]=0;//C[2]-(dCdx(3,0)-B1*C[1]-(B2*C[4]+(1-C[4])*B3*C[0]));
   R[4]=-dfdt_FD;
 
   //Hollyyyyy:This is for the viscous Burgers equation
@@ -521,8 +521,8 @@ mesh_pt()->boundary_node_pt(right_boundary_id,i_node)->pin(0);
   //Bulk_mesh_pt->node_pt(n)->set_value(0,0.1);
   //Bulk_mesh_pt->node_pt(n)->pin(0);
   //pinning the temperature to a RT at all nodes
-  Bulk_mesh_pt->node_pt(n)->set_value(1,1.0);
-  Bulk_mesh_pt->node_pt(n)->pin(1);
+  //Bulk_mesh_pt->node_pt(n)->set_value(1,1.0);
+  //Bulk_mesh_pt->node_pt(n)->pin(1);
   //pinning the stress to a zero value at all nodes
   Bulk_mesh_pt->node_pt(n)->set_value(2,0.0);
   Bulk_mesh_pt->node_pt(n)->pin(2);
