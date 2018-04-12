@@ -692,7 +692,7 @@ set_initial_condition()
    double ICconc=sin(2*pi*x/0.1);
 
    //Intial small concentration value everywhere
-   double initial_concentration=ICconc;
+   double initial_concentration=0.1;
    //Initial temperature:scaled such that RT=1.0
    double initial_temperature=1.0;
   
