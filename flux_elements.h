@@ -108,7 +108,6 @@ public:
   {
    //Call the generic residuals function with flag set to 0
    //using a dummy matrix
-   std::cout<<"doing the flux fill in...duals"<<std::endl;
    fill_in_generic_residual_contribution_adv_diff_react_flux(
     residuals,GeneralisedElement::Dummy_matrix,0);
   }
@@ -490,10 +489,7 @@ fill_in_generic_residual_contribution_adv_diff_react_flux(
   
    //Get the imposed flux
    Vector<double> flux(Nreagent,0.0);
-   std::cout<<interpolated_x.size()<<std::endl;
-   std::cout<<C.size()<<std::endl;
-   std::cout<<flux.size()<<std::endl;
-   
+  
    get_flux(interpolated_x,C,flux);
  
    //Now add to the appropriate equations
@@ -520,12 +516,16 @@ fill_in_generic_residual_contribution_adv_diff_react_flux(
       // terms are required
      }
     }//End loop over test functions
+
+    //Output the residuals individually
+    /*
     if(local_eqn>=0)
     {
       std::cout<<"Nreagent:  "<<i<<std::endl;
       std::cout<<"local eq no:   "<<local_eqn<<std::endl;
       std::cout<<"flux residual:    "<<residuals[local_eqn]<<std::endl;
     }
+    */
    }//End loop over fluxes
   }//End loop over integration points
 }

@@ -111,6 +111,11 @@ namespace oomph
    const Vector<double> &c, const DenseMatrix<double> &dcdx,
    Vector<double> &Tau);
 
+  /// \short Function pointer to diff terms
+  typedef void (*AdvectionDiffusionReactionDiffFctPt)(
+   const Vector<double> &c, const DenseMatrix<double> &dcdx,
+   Vector<double> &Diff);
+
 
   /// \short Constructor: Initialise the Source_fct_pt, Wind_fct_pt,
   /// Reaction_fct_pt to null and initialise the dimensionless 
@@ -122,10 +127,9 @@ namespace oomph
 					  F_fct_pt(0),
 					  F_deriv_fct_pt(0),
 					  Tau_fct_pt(0),
+					  Diff_fct_pt(0),
 					  ALE_is_disabled(false)
   {
-   //Set diffusion coefficients to default
-   Diff_pt = &Default_dimensionless_number;
   }
  
   /// Broken copy constructor
@@ -351,12 +355,16 @@ namespace oomph
   /// Access function: Pointer to tau function. Const version
   AdvectionDiffusionReactionTauFctPt tau_fct_pt() const 
   {return Tau_fct_pt;}
- 
-  /// Vector of diffusion coefficients
-  const Vector<double> &diff() const {return *Diff_pt;}
 
-  /// Pointer to vector of diffusion coefficients
-  Vector<double>* &diff_pt() {return Diff_pt;}
+
+  /// Access function: Pointer to function to set diffusion coefficients
+  AdvectionDiffusionReactionDiffFctPt& diff_fct_pt() 
+  {return Diff_fct_pt;}
+ 
+  /// Access function: Pointer to function to set diffusion coefficients. Const version
+  AdvectionDiffusionReactionDiffFctPt diff_fct_pt() const 
+  {return Diff_fct_pt;}
+ 
 
   /// \short Get source term at (Eulerian) position x. This function is
   /// virtual to allow overloading in multi-physics problems where
@@ -755,7 +763,7 @@ namespace oomph
 			      const DenseMatrix<double> &dCdx,
 			      Vector<double>& Tau)
   {
-   //If no tau vector has been set, return zero
+   //If no tau vector has been set, return vector of ones
    if(Tau_fct_pt==0) 
    {
     for(unsigned r=0;r<NREAGENT;r++){Tau[r] = 1.0;}
@@ -764,6 +772,23 @@ namespace oomph
    {
     // Get tau
     (*Tau_fct_pt)(C,dCdx,Tau);
+   }
+  }
+
+  ///Get diffusion coefficients
+  void get_diff_adv_diff_react(const Vector<double> &C,
+			      const DenseMatrix<double> &dCdx,
+			      Vector<double>& Diff)
+  {
+   //If no diff vector has been set, return vector of ones
+   if(Diff_fct_pt==0) 
+   {
+    for(unsigned r=0;r<NREAGENT;r++){Diff[r] = 1.0;}
+   }
+   else
+   {
+    // Get diff
+    (*Diff_fct_pt)(C,dCdx,Diff);
    }
   }
  
@@ -864,9 +889,6 @@ inline double interpolated_c_adv_diff_react(const Vector<double> &s,
   virtual void fill_in_generic_residual_contribution_adv_diff_react(
    Vector<double> &residuals, DenseMatrix<double> &jacobian, 
    DenseMatrix<double> &mass_matrix, unsigned flag); 
- 
-  /// Pointer to global diffusion coefficients
-  Vector<double> *Diff_pt;
 
   /// Pointer to source function:
   AdvectionDiffusionReactionSourceFctPt Source_fct_pt;
@@ -888,6 +910,9 @@ inline double interpolated_c_adv_diff_react(const Vector<double> &s,
 
   //Pointer to Tau function
   AdvectionDiffusionReactionTauFctPt Tau_fct_pt;
+
+  //Pointer to diff function
+  AdvectionDiffusionReactionDiffFctPt Diff_fct_pt;
  
   /// \short Boolean flag to indicate if ALE formulation is disabled when 
   /// time-derivatives are computed. Only set to true if you're sure

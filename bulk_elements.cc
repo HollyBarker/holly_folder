@@ -89,9 +89,6 @@ namespace oomph
   //Set the Vector to hold local coordinates
   Vector<double> s(DIM);
 
-  //Get diffusion coefficients
-  Vector<double> D = diff();
-
   //Integers used to store the local equation number and local unknown
   //indices for the residuals and jacobians
   int local_eqn=0;
@@ -174,6 +171,10 @@ namespace oomph
    //Get Tau
    Vector<double> T(NREAGENT,0.0);
    get_tau_adv_diff_react(interpolated_c,interpolated_dcdx,T);
+
+   //Get D vector
+   Vector<double> D(NREAGENT,0.0);
+   get_diff_adv_diff_react(interpolated_c,interpolated_dcdx,D);
 
    //Get reaction terms
    Vector<double> R(NREAGENT,0.0);
@@ -395,6 +396,8 @@ namespace oomph
    } //End of loop over nodes
   } // End of loop over integration points
 
+//Outputs the residuals individually
+/*
   // Loop over the test functions
   for(unsigned l=0;l<n_node;l++)
   {
@@ -412,7 +415,7 @@ namespace oomph
 
    }
   }
-
+*/
  } 
 
 

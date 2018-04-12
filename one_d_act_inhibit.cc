@@ -66,78 +66,106 @@ namespace GlobalVariables
  //2 corresponds to the stress equation
  //3 corresponds to the volume fraction equation
 
- double timestep=0.001;
+ //Needed for the FD calculation of df/dt
+ //This is set in main
+ double timestep=0.0;
  
- //The two timescale parameters (both set to one initially)
+ //The timescale parameters (multiplying the time derivatives)
+ //These are set in the function activator_inhibitor_tau
  Vector<double> Tau(5,1.0);
- //The two diffusion parameters (both set to one initially)
+
+ //The diffusion parameters (multiplying the second spatial derivatives)
+ //These are set in main
  Vector<double> D(5,1.0);
 
- //Coefficients for the flux BCs
+ //Proportionality constants for the flux BCs
  double lambda_C=-1.0;
  double lambda_T=-1.0;
 
- //Young's modulus (will probably change to elasticity tensor)
- double E=1.9e-11;
+ //Young's modulus (Fisher 1965) [Pa]
+ double E=1.9e11;
 
  //Coefficient of thermal expansion
  double alpha=3.3e-5;
- //Temperature scaling
+ 
+ //Temperature scaling - RT [K]
  double T0=298;
- //Concentration scaling : set st atmospheric conc'n of
- //hydrogen is 1.0 mol/m^3
+ //Concentration scaling - atmospheric concentration of hydrogen is set to
+ //1.0 [mol/m^3]
  double C0=1.0;
 
- //Partial molal volume of hydrogen
- double Vh=7.7e-7;
- //Partial molal volume of hydride
- double VHr=2.19e-5;
- //Partial molal volume of uranium
- double VU=1.25e-5;
- 
- //Hollyyyyy: Is Cb something that needs to be calculated?
- double Cb=1.0;
- //Terminal solid solubility limit concentration
- double CTSS=0.56;
- //Density of uranium
- double rho=19.1e3;
- //Enthalpy of formation of hydride
- double EoF=-30346;
- //Specific heat capacity at constant pressure
- double c_p=117.2;
- //
- double kappa=22.5;
+ //Diffusivity (J.B. Condon - 1974) (assumed constant) [m^2 s^-1]
+ double diffusivity=(1.9e-6)*exp(-5820/T0);
 
+ //Partial molal volume of hydrogen (Dutton 1977) [m^3 mol^-1]
+ double Vh=7e-7;
+ //Partial molal volume of hydride (Condon 1980) [m^3 mol^-1]
+ double VHr=2.19e-5;
+ //Partial molal volume of uranium (Condon 1980) [m^3 mol^-1]
+ double VU=1.25e-5;
+
+ //Bound concentration of hydrogen
+ double Cb=1.0;
+ //Terminal solid solubility limit (considered constant) [m^3 mol^-1] 
+ double CTSS=0.56;
+ //Density of uranium [kg m^-3]
+ double rho=19.1e3;
+ //Enthalpy of formation of hydride [Joules]
+ double EoF=-30346;
+ //Specific heat capacity at constant pressure [J kg^-1 K^-1]
+ double c_p=117.2;
+ //Conductivity of heat [W m^-1 K^-1]
+ double kappa=22.5;
+ //Heat of transport [J mol^-1]
  double Q=5400;
+ //Ideal gas constant [J mol^-1 K^-1]
  double R=8.31;
 
+ //Set the constants multiplying terms in energy conservation 
  double A1=(rho*c_p*T0*VHr)/EoF;
- double A2=(T0*VHr*kappa)/(D[0]*EoF);
+ double A2=(T0*VHr*kappa)/(diffusivity*EoF);
  double A3=(C0*R*T0*VHr)/EoF;
  double A4=C0*Q*VHr/EoF;
- double A5=(-2*C0*Q*VHr*Vh)/EoF;
- double A6=(-C0*Q*VHr*Vh)/EoF;
- double A7=(C0*VHr*Vh*Vh)/(R*T0*EoF);
- 
+ double A5=(-2*C0*Q*VHr*Vh*E)/EoF;
+ double A6=(-C0*Q*VHr*Vh*E)/EoF;
+ double A7=(C0*VHr*Vh*Vh*E*E)/(R*T0*EoF);
+
+ //Set the constants multiplying terms in stress-strain relation
  double B1=alpha*T0;
  double B2=VHr/VU;
  double B3=C0*Vh;
- 
- double char_length=3.0e-5;
- 
- double char_time=char_length*char_length/D[0];
 
+ //Characteristic lengthscale of the microstructure
+ double char_length=3.0e-5;
+
+ //Characteristic lengthscale of the whole domain (domain is length 0.1m)
+ //This is used to nondimensionalise t=a^2 t' / D
+ double a=0.1;
+
+ //Characteristic time of reaction
+ double char_time=char_length*char_length/diffusivity;
  
  //Function to set tau(C)
  void activator_inhibitor_tau(const Vector<double> &C,
 			      const DenseMatrix <double> &dCdx,
 			      Vector <double> &Tau)
  {
-  Tau[0]=1-C[4];
+  Tau[0]=(1-C[4]);
   Tau[1]=A1;
   Tau[2]=0.0;
   Tau[3]=0.0;
   Tau[4]=1.0;
+ }
+
+ void activator_inhibitor_diff(const Vector<double> &C,
+			      const DenseMatrix <double> &dCdx,
+			      Vector <double> &Diff)
+ {
+  Diff[0]=1.0;
+  Diff[1]=A2;
+  Diff[2]=0.0;
+  Diff[3]=0.0;
+  Diff[4]=0.0;
  }
  
  //Function to set reaction term
@@ -145,20 +173,23 @@ namespace GlobalVariables
 				   const DenseMatrix <double> &dCdx,
 				   Vector<double> &R)
  {
-  double dfdt_FD= ((1-C[4])*(C[0]-CTSS))/((char_time+timestep)*(Cb-CTSS));
+  //Reaction term in mass conservation and energy conservation equations
+  //includes df/dt, so I've included the equation from the FD here.
+  //a^2 /D comes from the non-dimensionalisation of time
+  double dfdt_FD= ((1-C[4])*(C[0]-CTSS)*a*a)/((char_time+timestep)*(diffusivity)*(Cb-CTSS));
   
-  R[0]=dfdt_FD*(Cb-C[0]);
-  R[1]=dfdt_FD-(A3*C[1]*dCdx(0,0)*dCdx(0,0)/C[0]
-		+A4*dCdx(0,0)*dCdx(1,0)/C[1]
-		+A5*dCdx(0,0)*dCdx(2,0)
-		+A6*C[0]*dCdx(1,0)*dCdx(2,0)/(C[1]*C[1])
-		+A7*C[0]*dCdx(2,0)*dCdx(2,0)/C[1]);
+  //R[0]=dfdt_FD*(Cb-C[0]);
+  R[0]=0.0;
+  R[1]=dfdt_FD -(A3*C[1]*dCdx(0,0)*dCdx(0,0)/C[0]
+		 +A4*dCdx(0,0)*dCdx(1,0)/C[1]
+		 +A5*dCdx(0,0)*dCdx(2,0)
+		 +A6*C[0]*dCdx(1,0)*dCdx(2,0)/(C[1]*C[1])
+		 +A7*C[0]*dCdx(2,0)*dCdx(2,0)/C[1]);
   R[2]=dCdx(2,0);
-  R[3]=C[2]-E*(dCdx(3,0)-B1*C[1]-(B2*C[4]+(1-C[4])*B3*C[0]));
+  R[3]=C[2]-(dCdx(3,0)-B1*C[1]-(B2*C[4]+(1-C[4])*B3*C[0]));
   R[4]=-dfdt_FD;
 
-  //Hollyyyyy:This is for the viscous Burgers when I need to get the graphs
-  //for report
+  //Hollyyyyy:This is for the viscous Burgers equation
   //R[0] =C[0]*dCdx(0,0);
   //R[0]=0.0;
  }
@@ -168,14 +199,13 @@ namespace GlobalVariables
 			    const DenseMatrix <double> &dCdx,
 			    Vector<double> &F)
  {
-  F[0]=(Q*C[0]*dCdx(1,0))/(R*T0*C[1]*C[1])-(Vh*C[0]*dCdx(2,0))/(R*T0*C[1]);
+  F[0]=(Q*C[0]*dCdx(1,0))/(R*T0*C[1]*C[1])-(Vh*E*C[0]*dCdx(2,0))/(R*T0*C[1]);
   F[1]=0.0;
   F[2]=0.0;
   F[3]=0.0;
   F[4]=0.0;
 
-  //Hollyyyyy:This is for the viscous Burgers when I need to get the graphs
-  //for report
+  //Hollyyyyy:This is for the viscous Burgers equation
   //F[0]=0;
   //F[0]=-0.5*C[0]*C[0];
  }
@@ -214,8 +244,10 @@ namespace FirstBoundaryConditions
 					const Vector<double>& C,
 					Vector<double>& flux)
  {
-  flux[0]=GlobalVariables::lambda_C*(1-C[0])/GlobalVariables::D[0];
-  flux[1]=GlobalVariables::lambda_T*(1-C[1])/GlobalVariables::kappa;
+  //flux[0]=GlobalVariables::lambda_C*(1-C[0])/GlobalVariables::diffusivity;
+  //flux[1]=GlobalVariables::lambda_T*(1-C[1])/GlobalVariables::kappa;
+  flux[0]=0.0;
+  flux[1]=0.0;
   flux[2]=0.0;
   flux[3]=0.0;
   flux[4]=0.0;
@@ -289,23 +321,24 @@ RefineableOneDAdvectionDiffusionReactionProblem<ELEMENT>::
 RefineableOneDAdvectionDiffusionReactionProblem()
 {
 
- //Allocate the timestepper (fourth order implicit)
- add_time_stepper_pt(new BDF<4>);
+ //Allocate the timestepper (second order implicit)
+ add_time_stepper_pt(new BDF<2>);
  
  // Set up the mesh
  // Number of elements initially
- const unsigned n = 3; //2000; //2;
+ const unsigned n = 100;
  
  // Domain length
 // const double pi=acos(-1);
- const double length = 1.0;
+ const double length = 0.1;
  
  // Build and assign the refineable mesh, need to pass in number of
  // elements, length and the timestepper
- // Hollyyyyy: this is now just the bulk mesh
  Bulk_mesh_pt =
   new /*Refineable*/OneDMesh<ELEMENT>(n,length,Problem::time_stepper_pt());
 
+  Bulk_mesh_pt->boundary_node_pt(0,0)
+   ->make_periodic(Bulk_mesh_pt->boundary_node_pt(1,0));
  /*
  //Hollyyyyy - this was part of de-bugging
  unsigned nnode=mesh_pt()->nnode();
@@ -341,8 +374,6 @@ RefineableOneDAdvectionDiffusionReactionProblem()
  // giving it any elements, nodes, etc.
  Outer_surface_mesh_pt = new Mesh;
 
-
- 
  // Create prescribed-flux elements from all elements that are 
  // adjacent to boundary 0, but add them to a separate mesh.
  // Note that this is exactly the same function as used in the 
@@ -369,30 +400,54 @@ RefineableOneDAdvectionDiffusionReactionProblem()
  // here.
  //Get the number of boundaries
  unsigned n_bound = Bulk_mesh_pt->nboundary();
-
+ unsigned n_node = 0;
  //Loop over number of boundaries
  for(unsigned b=0;b<n_bound;b++)
  {
   //Set pinned outer boundary Dirichlet conditions
   if (b==0)
   {
-
-   unsigned n_node = Bulk_mesh_pt->nboundary_node(b);
-
+   //Get the number of nodes on the boundary
+   n_node = Bulk_mesh_pt->nboundary_node(b);
+   //Loop over the boundary nodes
    for (unsigned n=0;n<n_node;n++)
    {
-    //There are no dirichlet conditions on the outer boundary
-    //in this problem
+    
+    //Set scaled temperature on outer boundary to 1 (RT) for all time
+    Bulk_mesh_pt->boundary_node_pt(b,n)->set_value(1,1.0);
+    
+    //Set stress on outer boundary to 0 for all time
+    Bulk_mesh_pt->boundary_node_pt(b,n)->set_value(2,0.0);
+
+    //Set displacement on outer boundary to 0 for all time
+    Bulk_mesh_pt->boundary_node_pt(b,n)->set_value(3,0.0);
+
+    //Set volume fraction on outer boundary to 0 for all time
+    Bulk_mesh_pt->boundary_node_pt(b,n)->set_value(4,0.0);
+    
+    //Pin temperature on outer boundary
+    Bulk_mesh_pt->boundary_node_pt(b,n)->pin(1);
+
+    //Pin stress on outer boundary
+    Bulk_mesh_pt->boundary_node_pt(b,n)->pin(2);
+
+    //Pin displacement on outer boundary
+    Bulk_mesh_pt->boundary_node_pt(b,n)->pin(3);
+    
+    //Pin volume fraction on outer boundary
+    Bulk_mesh_pt->boundary_node_pt(b,n)->pin(4);
    }
   }
   //Set pinned inner boundary Dirichlet conditions
   if (b==1)
   {
-
-   unsigned n_node = Bulk_mesh_pt->nboundary_node(b);
+   //Get the number of nodes on the boundary
+   n_node = Bulk_mesh_pt->nboundary_node(b);
+   //Loop over the boundary nodes
    for (unsigned n=0;n<n_node;n++)
    {
-    //Set temperature on inner boundary to 1 (RT) for all time
+    
+    //Set scaled temperature on inner boundary to 1 (RT) for all time
     Bulk_mesh_pt->boundary_node_pt(b,n)->set_value(1,1.0);
     
     //Set stress on inner boundary to 0 for all time
@@ -400,7 +455,10 @@ RefineableOneDAdvectionDiffusionReactionProblem()
 
     //Set displacement on inner boundary to 0 for all time
     Bulk_mesh_pt->boundary_node_pt(b,n)->set_value(3,0.0);
-
+    
+    //Set volume fraction on outer boundary to 0 for all time
+    Bulk_mesh_pt->boundary_node_pt(b,n)->set_value(4,0.0);
+    
     //Pin temperature on inner boundary
     Bulk_mesh_pt->boundary_node_pt(b,n)->pin(1);
 
@@ -409,6 +467,9 @@ RefineableOneDAdvectionDiffusionReactionProblem()
 
     //Pin displacement on inner boundary
     Bulk_mesh_pt->boundary_node_pt(b,n)->pin(3);
+    
+    //Pin volume fraction on outer boundary
+    Bulk_mesh_pt->boundary_node_pt(b,n)->pin(4);
 
    }
   }
@@ -419,12 +480,11 @@ RefineableOneDAdvectionDiffusionReactionProblem()
  //----------------------------------------------
  //----------------------------------------------
 
-//Hollyyyyy:this is used for Burgers validation instead
+//Hollyyyyy: viscous Burgers equation
 //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-// WARNING:: YOU NEED TO CHANGE THE PREVIOUS REFERENCES
+// CHANGE THE PREVIOUS REFERENCES
 // WITHIN THE PROBLEM CONSTRUCTOR FROM
-// BULK_MESH_PT BACK TO MESH_PT() FOR THIS TO WORK.
-// OTHERWISE, IT WILL SEG FAULT.
+// BULK_MESH_PT BACK TO MESH_PT().
 //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
  
  //
@@ -449,6 +509,31 @@ mesh_pt()->boundary_node_pt(right_boundary_id,i_node)->pin(0);
  
  //----------------------------------------------
  //----------------------------------------------
+
+
+
+ //Hollyyyyy
+ //Trying to pin different things to see which cause the non-converging residuals
+ n_node=Bulk_mesh_pt->nnode();
+ for (unsigned n=0;n<n_node;n++)
+ {
+  //pinning the concentration to a 0.1 value at all nodes
+  //Bulk_mesh_pt->node_pt(n)->set_value(0,0.1);
+  //Bulk_mesh_pt->node_pt(n)->pin(0);
+  //pinning the temperature to a RT at all nodes
+  Bulk_mesh_pt->node_pt(n)->set_value(1,1.0);
+  Bulk_mesh_pt->node_pt(n)->pin(1);
+  //pinning the stress to a zero value at all nodes
+  Bulk_mesh_pt->node_pt(n)->set_value(2,0.0);
+  Bulk_mesh_pt->node_pt(n)->pin(2);
+  //pinning the displacement to a zero value at all nodes
+  Bulk_mesh_pt->node_pt(n)->set_value(3,0.0);
+  Bulk_mesh_pt->node_pt(n)->pin(3);
+  //pinning the volume fraction to a zero value at all nodes
+  Bulk_mesh_pt->node_pt(n)->set_value(4,0.0);
+  Bulk_mesh_pt->node_pt(n)->pin(4);
+ }
+ 
  
  // Loop over the elements to set up element-specific things that cannot
  // be handled by the (argument-free!) ELEMENT constructor: Pass pointer
@@ -462,7 +547,7 @@ mesh_pt()->boundary_node_pt(right_boundary_id,i_node)->pin(0);
   ELEMENT *elem_pt = dynamic_cast<ELEMENT*>(Bulk_mesh_pt->element_pt(i));
 
   //Set the diffusion coefficients
-  elem_pt->diff_pt() = &GlobalVariables::D;
+  elem_pt->diff_fct_pt() = &GlobalVariables::activator_inhibitor_diff;
   //Set the reaction terms
   elem_pt->reaction_fct_pt() = &GlobalVariables::activator_inhibitor_reaction;
   //And their derivatives
@@ -486,7 +571,6 @@ mesh_pt()->boundary_node_pt(right_boundary_id,i_node)->pin(0);
     Outer_surface_mesh_pt->element_pt(e));
 
   // Set the pointer to the prescribed flux function
-  //Hollyyyyy:HERE is where you set the flux function
   el_pt->flux_fct_pt() = 
    &FirstBoundaryConditions::prescribed_flux_on_outer_boundary;
   
@@ -503,7 +587,6 @@ mesh_pt()->boundary_node_pt(right_boundary_id,i_node)->pin(0);
     Inner_surface_mesh_pt->element_pt(e));
 
   // Set the pointer to the prescribed flux function
-  //Hollyyyyy:HERE is where you set the flux function
   el_pt->flux_fct_pt() = 
    &FirstBoundaryConditions::prescribed_flux_on_inner_boundary;
  }
@@ -524,17 +607,10 @@ void RefineableOneDAdvectionDiffusionReactionProblem<ELEMENT>::
 create_flux_elements(const unsigned &b, Mesh* const &bulk_mesh_pt,
                      Mesh* const &surface_mesh_pt)
 {
-
-  
- // How many bulk elements are adjacent to boundary b?
- //Hollyyyyy for the 1d case
- //unsigned n_element = bulk_mesh_pt->nboundary_node(b);
- 
- //Hollyyyyy for the higher dimensional case
+ // Get the number ofbulk elements adjacent to boundary b
  unsigned n_element = bulk_mesh_pt->nboundary_element(b);
- 
 
- // Loop over the bulk elements adjacent to boundary b?
+ // Loop over the bulk elements adjacent to boundary b
  for(unsigned e=0;e<n_element;e++)
  {
   // Get pointer to the bulk element that is adjacent to boundary b
@@ -548,11 +624,10 @@ create_flux_elements(const unsigned &b, Mesh* const &bulk_mesh_pt,
   AdvectionDiffusionReactionFluxElement<ELEMENT>* flux_element_pt = new 
    AdvectionDiffusionReactionFluxElement<ELEMENT>(bulk_elem_pt,face_index);
 
-  //Add the prescribed-flux element to the surface mesh
+  //Add the flux element to the surface mesh
   surface_mesh_pt->add_element_pt(flux_element_pt);
 
  } //end of loop over bulk elements adjacent to boundary b
-
 } // end of create_flux_elements
 
 //============start_of_delete_flux_elements==============================
@@ -612,8 +687,12 @@ set_initial_condition()
    //Local pointer to the node in the bulk
    Node* nod_pt = Bulk_mesh_pt->node_pt(n);   
 
+   const double pi=3.141592654;
+   double x=nod_pt->x(0);
+   double ICconc=sin(2*pi*x/0.1);
+
    //Intial small concentration value everywhere
-   double initial_concentration=0.1;
+   double initial_concentration=ICconc;
    //Initial temperature:scaled such that RT=1.0
    double initial_temperature=1.0;
   
@@ -652,15 +731,14 @@ void RefineableOneDAdvectionDiffusionReactionProblem<ELEMENT>::timestep(
  //Set the problem's Dt to use in the inital condition
  Dt = dt;
  //Maximum adaptation for the first timestep
- unsigned max_adapt = 0;//2;
+ unsigned max_adapt = 0;
  //Take the first timestep
  bool first = true;
  //Set the initial condition
-
  set_initial_condition();
 
- //Solve the first step (you need the additional flag first so that
- //the initial conditions are reset when you adapt in space)
+ //Solve the first step (one solve is done before adapting the mesh)
+ //Spatial adaptivity does not work here
  unsteady_newton_solve(Dt);
  //newton_solve();
 
@@ -670,23 +748,24 @@ void RefineableOneDAdvectionDiffusionReactionProblem<ELEMENT>::timestep(
   char file1[100];
   sprintf(file1,"RESLT/step%i.dat",i+1);
   ofstream out1(file1);
-  mesh_pt()->output(out1,5);
+  Bulk_mesh_pt->output(out1,5);
   out1.close();
  }
- //Now set so that only one round of adaptation is performed each timestep
- max_adapt = 0;//1;
+ //Zero rounds of adaptation per timestep
+ max_adapt = 0;
  //This is not the first timestep, so we shouldn't use the initial conditions
  first = false;
  //Loop over timesteps
  for(unsigned i=1;i<nstep;i++)
  {
+  std::cout<<"timestep number  "<<i<<std::endl;
   //Take a timestep
   unsteady_newton_solve(dt,max_adapt,first);
   //Output the result
   char file1[100];
   sprintf(file1,"RESLT/step%i.dat",i+1);
   ofstream out1(file1);
-  mesh_pt()->output(out1,5);
+  Bulk_mesh_pt->output(out1,5);
   out1.close();
  }
 }
@@ -706,22 +785,12 @@ void RefineableOneDAdvectionDiffusionReactionProblem<ELEMENT>::timestep(
 
 int main()
 {
- //Diffusive length-scale
- //double epsilon = 0.05;
- //Set the control parameters
- //GlobalVariables::D[0]=0.1;
  //Set the timestep
- double dt = 0.001;
- unsigned nstep=100;
- 
- GlobalVariables::D[0]=1.0;
- GlobalVariables::D[1]=GlobalVariables::A2;
- GlobalVariables::D[2]=0.0;
- GlobalVariables::D[3]=0.0;
- GlobalVariables::D[4]=0.0;
+ double dt = 0.0001;
+ GlobalVariables::timestep=dt;
 
- GlobalVariables::char_time=GlobalVariables::char_length*
-  GlobalVariables::char_length/GlobalVariables::D[0];
+ //Set the number of timesteps to be taken
+ unsigned nstep=10;
  
  //Set up the problem
  //------------------
@@ -730,10 +799,12 @@ int main()
  // a new object of the type used to template the problem below.
  // Create the problem with 1D three-node refineable elements from the
  // RefineableLineAdvectionDiffusionReactionElement family.
+ 
  RefineableOneDAdvectionDiffusionReactionProblem<
   /*Refineable*/QAdvectionDiffusionReactionElement<5,1,3> > problem;
  //Take four levels of uniform refinement to start things off
  //for(unsigned i=0;i<4;i++) { problem.refine_uniformly(); }
  //Now timestep the problem
  problem.timestep(dt,nstep);
+
 } // End of main
