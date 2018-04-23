@@ -230,7 +230,7 @@ namespace oomph
      {
       // Add body force/source/reaction term and time derivative
       residuals[local_eqn] -= 
-       (T[r]*dcdt[r] + source[r] + R[r])*test(l)*W;
+       (T[r]*dcdt[r] + source[r] +R[r])*test(l)*W;
          
       // The Advection Diffusion bit itself
       for(unsigned k=0;k<DIM;k++)
@@ -241,7 +241,7 @@ namespace oomph
        if(!ALE_is_disabled) {tmp -= T[r]*mesh_velocity[k];}
        //Now construct the contribution to the residuals
        residuals[local_eqn] -= 
-	(interpolated_dcdx(r,k)*(tmp*test(l) + D[r]*dtestdx(l,k))+F[r]*dtestdx(l,k))*W;
+	(interpolated_dcdx(r,k)*(tmp*test(l) + D[r]*dtestdx(l,k)) +F[r]*dtestdx(l,k)) *W;
       }
 
       
@@ -367,30 +367,40 @@ namespace oomph
 	   //jacobian
 	   if (F_deriv_fct_pt==0)
 	   {
-	    //This is adding the dFdC part only (found by
-	    //finite differences)
-	    jacobian(local_eqn,local_unknown) -=
-	     dFdC_FD(r,r2)*psi(l2)*test(l)*W;
-	    for(unsigned i=0;i<DIM;i++)
+	    //Loop over the spatial dimensions for dtestdx
+	    for(unsigned k=0;k<DIM;k++)
 	    {
-	     //This is adding dFddCdx part only (found by
+	     //This is adding the dFdC part only (found by
 	     //finite differences)
-	     jacobian(local_eqn,local_unknown)-=
-	      dFddCdx_FD(r,r2,i)*dpsidx(l2,i)*test(l)*W;
+	     jacobian(local_eqn,local_unknown) -=
+	      dFdC_FD(r,r2)*psi(l2)*dtestdx(l,k)*W;
+	     //Loop over the spatial dimensions for dpsidx
+	     for(unsigned i=0;i<DIM;i++)
+	     {
+	      //This is adding dFddCdx part only (found by
+	      //finite differences)
+	      jacobian(local_eqn,local_unknown)-=
+	       dFddCdx_FD(r,r2,i)*dpsidx(l2,i)*dtestdx(l,k)*W;
+	     }
 	    }
 	   }
 	   //Get dFdC from the user-specified function
 	   else
 	   {
+	    for(unsigned k=0;k<DIM;k++)
+	    {
 	    (*F_deriv_fct_pt)(interpolated_c,interpolated_dcdx,dFdC);
 	    jacobian(local_eqn,local_unknown)-=
-	     dFdC(r,r2)*psi(l2)*test(l)*W;
+	     dFdC(r,r2)*psi(l2)*dtestdx(l,k)*W;
+	    }
 	   }
 	  }
 	 }
 	}//End of loop over reagents
        } //End of loop over nodes
-      } //End of jacobian 
+      } //End of jacobian
+      
+      
      } 
     } //End of loop over reagents
    } //End of loop over nodes

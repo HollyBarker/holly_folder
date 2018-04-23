@@ -235,6 +235,117 @@ namespace oomph
    ALE_is_disabled=false;
   }
 
+  /// \short Number of scalars/fields output by this element. Reimplements
+  /// broken virtual function in base class.
+  unsigned nscalar_paraview() const
+  {
+   return DIM+NREAGENT;
+  }
+
+  /// \short Write values of the i-th scalar field at the plot points. Needs 
+  /// to be implemented for each new specific element type.
+  void scalar_value_paraview(std::ofstream& file_out,
+			     const unsigned& i,
+			     const unsigned& nplot) const
+  {
+   // Vector of local coordinates
+   Vector<double> s(DIM,0.0);
+
+   // Allocate space for the Eulerian coordinates of each point
+   Vector<double> x(DIM,0.0);
+   
+   // Calculate the number of plot points
+   unsigned num_plot_points=nplot_points_paraview(nplot);
+  
+   // Loop over plot points
+   for (unsigned iplot=0;iplot<num_plot_points;iplot++)
+   {
+    // Get local coordinates of plot point
+    get_s_plot(iplot,nplot,s);
+
+    // Get Eulerian coordinate of plot point
+    interpolated_x(s,x);
+
+    // Dummy ipt argument
+    unsigned ipt=0;
+     
+     
+    // Advection Diffusion
+    if (i<NREAGENT)
+    {
+     // Allocate space for the interpolated values of C
+     Vector<double> interpolated_c(NREAGENT,0.0);
+    
+     // Output the (i)-th component of C
+     file_out << interpolated_c_adv_diff_react(s,i) << std::endl;
+    }
+
+     // Output the components of the wind
+    else if (i<DIM+NREAGENT) 
+    {
+     // Allocate space for the wind
+     Vector<double> wind(DIM,0.0);
+
+     // Get the wind at the local coordinate, s
+     get_wind_adv_diff_react(ipt,s,x,wind);
+
+     // Output the i-th wind component to file
+     file_out << wind[i-NREAGENT] << std::endl;
+    } 
+    // Never get here
+    else 
+    {
+     // Create an output stream
+     std::stringstream error_stream;
+
+     // Create the error message
+     error_stream << "AdvectionDiffusionReaction Elements only store "
+		  << DIM+1 << " fields " << std::endl;
+
+     // Throw the error message
+     throw OomphLibError(error_stream.str(),
+			 OOMPH_CURRENT_FUNCTION,
+			 OOMPH_EXCEPTION_LOCATION);
+    }
+   } // for (unsigned iplot=0;iplot<num_plot_points;iplot++)
+  } // End of scalar_value_paraview
+ 
+
+  /// \short Name of the i-th scalar field. Default implementation
+  /// returns V1 for the first one, V2 for the second etc. Can (should!) be
+  /// overloaded with more meaningful names in specific elements.
+  std::string scalar_name_paraview(const unsigned& i) const
+  {
+   // Reaction fields
+   if(i<NREAGENT) 
+   {
+    return "Reaction "+StringConversion::to_string(i);
+   }
+   //Wind
+   else if (i<DIM+NREAGENT)
+   {
+    return "Wind "+StringConversion::to_string(i-NREAGENT);
+   }
+   // Never get here
+   else
+   {
+    // Create an output stream
+    std::stringstream error_stream;
+
+    // Create the error message
+    error_stream << "AdvectionDiffusionReaction Elements only store "
+		 << DIM+1 << " fields " << std::endl;
+
+    // Throw the error message
+    throw OomphLibError(error_stream.str(),
+			OOMPH_CURRENT_FUNCTION,
+			OOMPH_EXCEPTION_LOCATION);
+    
+    // Dummy return
+    return " ";
+   } // if (i<DIM)
+  } // End of scalar_name_paraview
+
 
   /// Output with default number of plot points
   void output(std::ostream &outfile) 
@@ -777,8 +888,8 @@ namespace oomph
 
   ///Get diffusion coefficients
   void get_diff_adv_diff_react(const Vector<double> &C,
-			      const DenseMatrix<double> &dCdx,
-			      Vector<double>& Diff)
+			       const DenseMatrix<double> &dCdx,
+			       Vector<double>& Diff)
   {
    //If no diff vector has been set, return vector of ones
    if(Diff_fct_pt==0) 
@@ -802,7 +913,7 @@ namespace oomph
     GeneralisedElement::Dummy_matrix,0);
   }
 
- 
+  
   /// \short Add the element's contribution to its residual vector and 
   /// the element Jacobian matrix (wrapper)
   void fill_in_contribution_to_jacobian(Vector<double> &residuals,
@@ -811,8 +922,8 @@ namespace oomph
    //Call the generic routine with the flag set to 1
    fill_in_generic_residual_contribution_adv_diff_react(
     residuals,jacobian,GeneralisedElement::Dummy_matrix,1);
-  }
- 
+    }
+  
 /*
 /// Add the element's contribution to its residuals vector,
 /// jacobian matrix and mass matrix

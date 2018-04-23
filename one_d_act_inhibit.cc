@@ -79,8 +79,8 @@ namespace GlobalVariables
  Vector<double> D(5,1.0);
 
  //Proportionality constants for the flux BCs
- double lambda_C=-1.0;
- double lambda_T=-1.0;
+ double lambda_C=1.0;
+ double lambda_T=1.0;
 
  //Young's modulus (Fisher 1965) [Pa]
  double E=1.9e11;
@@ -176,17 +176,30 @@ namespace GlobalVariables
   //Reaction term in mass conservation and energy conservation equations
   //includes df/dt, so I've included the equation from the FD here.
   //a^2 /D comes from the non-dimensionalisation of time
-  double dfdt_FD= ((1-C[4])*(C[0]-CTSS)*a*a)/((char_time+timestep)*(diffusivity)*(Cb-CTSS));
+  double dfdt_FD;
+  double tempdfdt_FD=((1-C[4])*(C[0]-CTSS)*a*a)/((char_time+timestep)*(diffusivity)*(Cb-CTSS));
+  //If volume fraction change will be negative and larger than the current value of C[4]
+  if (tempdfdt_FD<0 && C[4]<=0)
+  {
+   dfdt_FD=0.0;
+  }
+  else if (C[4]+tempdfdt_FD<0)
+  {
+   dfdt_FD=-C[4];
+  }
+  else
+  {
+   dfdt_FD=tempdfdt_FD;
+  }
   
-  //R[0]=dfdt_FD*(Cb-C[0]);
-  R[0]=0.0;
-  R[1]=dfdt_FD -(A3*C[1]*dCdx(0,0)*dCdx(0,0)/C[0]
-		 +A4*dCdx(0,0)*dCdx(1,0)/C[1]
-		 +A5*dCdx(0,0)*dCdx(2,0)
-		 +A6*C[0]*dCdx(1,0)*dCdx(2,0)/(C[1]*C[1])
-		 +A7*C[0]*dCdx(2,0)*dCdx(2,0)/C[1]);
-  R[2]=dCdx(2,0);
-  R[3]=0;//C[2]-(dCdx(3,0)-B1*C[1]-(B2*C[4]+(1-C[4])*B3*C[0]));
+  R[0]=dfdt_FD*(Cb-C[0]);
+  R[1]=dfdt_FD - (A3*C[1]*dCdx(0,0)*dCdx(0,0)/C[0]
+		  +A4*dCdx(0,0)*dCdx(1,0)/C[1]
+		  +A5*dCdx(0,0)*dCdx(2,0)
+		  +A6*C[0]*dCdx(1,0)*dCdx(2,0)/(C[1]*C[1])
+		  +A7*C[0]*dCdx(2,0)*dCdx(2,0)/C[1]);
+  R[2]=0.0;
+  R[3]=0.0;//C[2]-(dCdx(3,0)-B1*C[1]-(B2*C[4]+(1-C[4])*B3*C[0]));
   R[4]=-dfdt_FD;
 
   //Hollyyyyy:This is for the viscous Burgers equation
@@ -201,7 +214,7 @@ namespace GlobalVariables
  {
   F[0]=(Q*C[0]*dCdx(1,0))/(R*T0*C[1]*C[1])-(Vh*E*C[0]*dCdx(2,0))/(R*T0*C[1]);
   F[1]=0.0;
-  F[2]=0.0;
+  F[2]=0.0;//C[2];
   F[3]=0.0;
   F[4]=0.0;
 
@@ -236,18 +249,16 @@ namespace GlobalVariables
  {
   // Calculate the solution here...
  }
-}
 
-namespace FirstBoundaryConditions
-{
  void prescribed_flux_on_outer_boundary(const Vector<double>& x,
 					const Vector<double>& C,
 					Vector<double>& flux)
  {
-  //flux[0]=GlobalVariables::lambda_C*(1-C[0])/GlobalVariables::diffusivity;
-  //flux[1]=GlobalVariables::lambda_T*(1-C[1])/GlobalVariables::kappa;
-  flux[0]=0.0;
-  flux[1]=0.0;
+  flux[0]=lambda_C*(1-C[0])/diffusivity;
+   //+(Q*C[0]/(R*T0*C[1]*C[1]))*(lambda_T*(1-C[1])/kappa);
+  flux[1]=A2*lambda_T*(1-C[1])/kappa;
+  //flux[0]=0.0;
+  //flux[1]=0.0;
   flux[2]=0.0;
   flux[3]=0.0;
   flux[4]=0.0;
@@ -326,19 +337,19 @@ RefineableOneDAdvectionDiffusionReactionProblem()
  
  // Set up the mesh
  // Number of elements initially
- const unsigned n = 100;
+ const unsigned n = 1000;
  
  // Domain length
 // const double pi=acos(-1);
- const double length = 0.1;
+ const double length = 1.0;
  
  // Build and assign the refineable mesh, need to pass in number of
  // elements, length and the timestepper
  Bulk_mesh_pt =
   new /*Refineable*/OneDMesh<ELEMENT>(n,length,Problem::time_stepper_pt());
 
-  Bulk_mesh_pt->boundary_node_pt(0,0)
-   ->make_periodic(Bulk_mesh_pt->boundary_node_pt(1,0));
+ //Bulk_mesh_pt->boundary_node_pt(0,0)
+ //->make_periodic(Bulk_mesh_pt->boundary_node_pt(1,0));
  /*
  //Hollyyyyy - this was part of de-bugging
  unsigned nnode=mesh_pt()->nnode();
@@ -352,8 +363,8 @@ RefineableOneDAdvectionDiffusionReactionProblem()
  
  //Output the initial mesh
  unsigned nplot=5;
- ofstream filename("initial_mesh.dat");
- this->Bulk_mesh_pt->output(filename,nplot);
+ ofstream filename("RESLT/initial_mesh.vtu");
+ this->Bulk_mesh_pt->output_paraview(filename,nplot);
 
   
  //----------------------------------------------
@@ -412,9 +423,11 @@ RefineableOneDAdvectionDiffusionReactionProblem()
    //Loop over the boundary nodes
    for (unsigned n=0;n<n_node;n++)
    {
+    //Set scaled concentration on outer boundary to 1 (Atm) for all time
+    //Bulk_mesh_pt->boundary_node_pt(b,n)->set_value(0,1.0);
     
     //Set scaled temperature on outer boundary to 1 (RT) for all time
-    Bulk_mesh_pt->boundary_node_pt(b,n)->set_value(1,1.0);
+    //Bulk_mesh_pt->boundary_node_pt(b,n)->set_value(1,1.0);
     
     //Set stress on outer boundary to 0 for all time
     Bulk_mesh_pt->boundary_node_pt(b,n)->set_value(2,0.0);
@@ -422,11 +435,15 @@ RefineableOneDAdvectionDiffusionReactionProblem()
     //Set displacement on outer boundary to 0 for all time
     Bulk_mesh_pt->boundary_node_pt(b,n)->set_value(3,0.0);
 
+    //There is no spatial derivative of f in the equations I have
     //Set volume fraction on outer boundary to 0 for all time
-    Bulk_mesh_pt->boundary_node_pt(b,n)->set_value(4,0.0);
+    //Bulk_mesh_pt->boundary_node_pt(b,n)->set_value(4,0.0);
+
+    //Pin concentration on outer boundary
+    //Bulk_mesh_pt->boundary_node_pt(b,n)->pin(0);
     
     //Pin temperature on outer boundary
-    Bulk_mesh_pt->boundary_node_pt(b,n)->pin(1);
+    //Bulk_mesh_pt->boundary_node_pt(b,n)->pin(1);
 
     //Pin stress on outer boundary
     Bulk_mesh_pt->boundary_node_pt(b,n)->pin(2);
@@ -434,8 +451,9 @@ RefineableOneDAdvectionDiffusionReactionProblem()
     //Pin displacement on outer boundary
     Bulk_mesh_pt->boundary_node_pt(b,n)->pin(3);
     
+    //There is no spatial derivative of f in the equations I have
     //Pin volume fraction on outer boundary
-    Bulk_mesh_pt->boundary_node_pt(b,n)->pin(4);
+    //Bulk_mesh_pt->boundary_node_pt(b,n)->pin(4);
    }
   }
   //Set pinned inner boundary Dirichlet conditions
@@ -446,6 +464,9 @@ RefineableOneDAdvectionDiffusionReactionProblem()
    //Loop over the boundary nodes
    for (unsigned n=0;n<n_node;n++)
    {
+
+    //Set scaled concentration  on inner boundary to 1 (Atm) for all time
+    //Bulk_mesh_pt->boundary_node_pt(b,n)->set_value(0,0.0);
     
     //Set scaled temperature on inner boundary to 1 (RT) for all time
     Bulk_mesh_pt->boundary_node_pt(b,n)->set_value(1,1.0);
@@ -455,21 +476,26 @@ RefineableOneDAdvectionDiffusionReactionProblem()
 
     //Set displacement on inner boundary to 0 for all time
     Bulk_mesh_pt->boundary_node_pt(b,n)->set_value(3,0.0);
-    
+
+    //There is no spatial derivative of f in the equations I have
     //Set volume fraction on outer boundary to 0 for all time
-    Bulk_mesh_pt->boundary_node_pt(b,n)->set_value(4,0.0);
+    //Bulk_mesh_pt->boundary_node_pt(b,n)->set_value(4,0.0);
+
+    //Pin concentration on inner boundary
+    //Bulk_mesh_pt->boundary_node_pt(b,n)->pin(0);
     
     //Pin temperature on inner boundary
-    Bulk_mesh_pt->boundary_node_pt(b,n)->pin(1);
+    //Bulk_mesh_pt->boundary_node_pt(b,n)->pin(1);
 
     //Pin stress on inner boundary
     Bulk_mesh_pt->boundary_node_pt(b,n)->pin(2);
 
     //Pin displacement on inner boundary
     Bulk_mesh_pt->boundary_node_pt(b,n)->pin(3);
-    
+
+    //There is no spatial derivative of f in the equations I have
     //Pin volume fraction on outer boundary
-    Bulk_mesh_pt->boundary_node_pt(b,n)->pin(4);
+    //Bulk_mesh_pt->boundary_node_pt(b,n)->pin(4);
 
    }
   }
@@ -530,8 +556,8 @@ mesh_pt()->boundary_node_pt(right_boundary_id,i_node)->pin(0);
   Bulk_mesh_pt->node_pt(n)->set_value(3,0.0);
   Bulk_mesh_pt->node_pt(n)->pin(3);
   //pinning the volume fraction to a zero value at all nodes
-  Bulk_mesh_pt->node_pt(n)->set_value(4,0.0);
-  Bulk_mesh_pt->node_pt(n)->pin(4);
+  //Bulk_mesh_pt->node_pt(n)->set_value(4,0.0);
+  //Bulk_mesh_pt->node_pt(n)->pin(4);
  }
  
  
@@ -572,7 +598,7 @@ mesh_pt()->boundary_node_pt(right_boundary_id,i_node)->pin(0);
 
   // Set the pointer to the prescribed flux function
   el_pt->flux_fct_pt() = 
-   &FirstBoundaryConditions::prescribed_flux_on_outer_boundary;
+   &GlobalVariables::prescribed_flux_on_outer_boundary;
   
  }
 
@@ -588,7 +614,7 @@ mesh_pt()->boundary_node_pt(right_boundary_id,i_node)->pin(0);
 
   // Set the pointer to the prescribed flux function
   el_pt->flux_fct_pt() = 
-   &FirstBoundaryConditions::prescribed_flux_on_inner_boundary;
+   &GlobalVariables::prescribed_flux_on_inner_boundary;
  }
  
 //--------------------------------------------------------------------- 
@@ -689,21 +715,24 @@ set_initial_condition()
 
    const double pi=3.141592654;
    double x=nod_pt->x(0);
-   double ICconc=sin(2*pi*x/0.1);
 
    //Intial small concentration value everywhere
    double initial_concentration=0.1;
    //Initial temperature:scaled such that RT=1.0
    double initial_temperature=1.0;
+   //Initial volume fraction set to0 everywhere
+   double initial_volfrac=0.0;
   
    //Set the initial concentration of hydrogen
    nod_pt->set_value(t,0,initial_concentration);
    //Set the initial temperature everywhere
    nod_pt->set_value(t,1,initial_temperature);
+   //Set the initial stress to 0
+   nod_pt->set_value(t,2,0.0);
    //Set the initial displacement to 0
    nod_pt->set_value(t,3,0.0);
    //Set the initial hydride volume fraction to zero
-   nod_pt->set_value(t,4,0.0);
+   nod_pt->set_value(t,4,initial_volfrac);
   }//Finish loop over bulk nodes
 
  }//Finish loop over previous timesteps
@@ -711,9 +740,9 @@ set_initial_condition()
  // Reset backed up time for global timestepper
  time_pt()->time()=backed_up_time;
  //Document the initial solution
- ofstream filename("RESLT/initial.dat");
+ ofstream filename("RESLT/step0.vtu");
  //Plot the solution with 5 points per element
- Bulk_mesh_pt->output(filename,5);
+ Bulk_mesh_pt->output_paraview(filename,5);
  filename.close();
  //Set the initial values impulsive
  //i.e. assume that the solution has been at the initial condition for all
@@ -743,14 +772,13 @@ void RefineableOneDAdvectionDiffusionReactionProblem<ELEMENT>::timestep(
  //newton_solve();
 
  //Output the result
- {
-  unsigned i=0;
-  char file1[100];
-  sprintf(file1,"RESLT/step%i.dat",i+1);
-  ofstream out1(file1);
-  Bulk_mesh_pt->output(out1,5);
-  out1.close();
- }
+ unsigned i=0;
+ char file1[100];
+ sprintf(file1,"RESLT/step%i.vtu",i+1);
+ ofstream out1(file1);
+ Bulk_mesh_pt->output_paraview(out1,5);
+ out1.close();
+
  //Zero rounds of adaptation per timestep
  max_adapt = 0;
  //This is not the first timestep, so we shouldn't use the initial conditions
@@ -763,9 +791,9 @@ void RefineableOneDAdvectionDiffusionReactionProblem<ELEMENT>::timestep(
   unsteady_newton_solve(dt,max_adapt,first);
   //Output the result
   char file1[100];
-  sprintf(file1,"RESLT/step%i.dat",i+1);
+  sprintf(file1,"RESLT/step%i.vtu",i+1);
   ofstream out1(file1);
-  Bulk_mesh_pt->output(out1,5);
+  Bulk_mesh_pt->output_paraview(out1,5);
   out1.close();
  }
 }
@@ -786,11 +814,11 @@ void RefineableOneDAdvectionDiffusionReactionProblem<ELEMENT>::timestep(
 int main()
 {
  //Set the timestep
- double dt = 0.0001;
+ double dt = 0.001;
  GlobalVariables::timestep=dt;
 
  //Set the number of timesteps to be taken
- unsigned nstep=10;
+ unsigned nstep=2000;
  
  //Set up the problem
  //------------------
