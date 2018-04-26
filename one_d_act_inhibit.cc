@@ -263,7 +263,7 @@ namespace GlobalVariables
   //////////////////////////////////////////////////
 
   //F[0]=0;
-  F[0]=0.5*C[0]*C[0];
+  F[0]=-0.5*C[0]*C[0];
  }
 
  //Function to set R derivative term by hand
