@@ -1,7 +1,7 @@
 D=0.1;
 length_domain=2*pi;
 
-Ntime=10;
+Ntime=20;
 Nx0=101;
 dx0=length_domain/(Nx0-1);
 dt=0.1;

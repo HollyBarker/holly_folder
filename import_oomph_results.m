@@ -11,8 +11,8 @@
 %% Initialize variables.
 baseName='/home/mbcx3hb2/OomphLibDirectory/trunk/user_drivers/holly_folder/RESLT/step';
 fileType='.dat';
-solution_oomph=zeros(500,10);
-for k=1:1:10
+solution_oomph=zeros(10000,20);
+for k=100:100:2000
     filename =  [baseName,num2str(k),fileType];
     delimiter = ' ';
     formatSpec = '%s%s%[^\n\r]';
@@ -63,7 +63,7 @@ for k=1:1:10
     raw(I,:) = [];
     
     x_oomph = cell2mat(raw(:, 1));
-    solution_oomph(:,k) = cell2mat(raw(:, 2));
+    solution_oomph(:,k/100) = cell2mat(raw(:, 2));
 end;
 
 clearvars filename delimiter formatSpec fileID dataArray ans raw col numericData rawData row regexstr result numbers invalidThousandsSeparator thousandsRegExp me I J K baseName fileType k;
