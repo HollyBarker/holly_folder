@@ -962,7 +962,7 @@ int main()
 // GlobalVariables::timestep=dt;
 
  //Set the number of timesteps to be taken
- unsigned nstep=1000;
+ unsigned nstep=2000;
  
  //Set up the problem
  //------------------
