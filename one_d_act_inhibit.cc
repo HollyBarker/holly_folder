@@ -433,8 +433,8 @@ RefineableOneDAdvectionDiffusionReactionProblem()
  
  //Output the initial mesh
  unsigned nplot=5;
- ofstream filename("RESLT/initial_mesh.vtu");
- this->mesh_pt()->output_paraview(filename,nplot);
+ ofstream filename("RESLT/initial_mesh.dat");
+ this->mesh_pt()->output(filename,nplot);
 
   
  //----------------------------------------------
@@ -842,9 +842,9 @@ set_initial_condition()
  // Reset backed up time for global timestepper
  //time_pt()->time()=backed_up_time;
  //Document the initial solution
- ofstream filename("RESLT/step0.vtu");
+ ofstream filename("RESLT/step0.dat");
  //Plot the solution with 5 points per element
- mesh_pt()->output_paraview(filename,5);
+ mesh_pt()->output(filename,5);
  filename.close();
  //Set the initial values impulsive
  //i.e. assume that the solution has been at the initial condition for all
@@ -879,9 +879,9 @@ unsteady_newton_solve(Dt);
  //Output the result
  unsigned i=0;
  char file1[100];
- sprintf(file1,"RESLT/step%i.vtu",i+1);
+ sprintf(file1,"RESLT/step%i.dat",i+1);
  ofstream out1(file1);
- mesh_pt()->output_paraview(out1,5);
+ mesh_pt()->output(out1,5);
  out1.close();
 
  //Zero rounds of adaptation per timestep
@@ -900,10 +900,10 @@ unsteady_newton_solve(Dt);
   //Output the result
 
   char file1[100];
-  sprintf(file1,"RESLT/step%i.vtu",i+1);
+  sprintf(file1,"RESLT/step%i.dat",i+1);
 
   ofstream out1(file1);
-  mesh_pt()->output_paraview(out1,5);
+  mesh_pt()->output(out1,5);
 
   out1.close();
  }
