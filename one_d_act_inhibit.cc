@@ -59,18 +59,13 @@ using namespace oomph;
 //Define Global variables in a namespace to keep things neat
 namespace GlobalVariables
 {
-
-  //////////////////////////////////////////////////
-  ////////These are for the actual model////////////
-  //////////////////////////////////////////////////
- 
  //Equations for time dependent concentration, temperature and f
  //(local hydride volume fraction)
  //0 corresponds to the concentration equation
  //1 corresponds to the temperature equation
  //2 corresponds to the stress equation
  //3 corresponds to the volume fraction equation
-/*
+
  //Needed for the FD calculation of df/dt
  //This is set in main
  double timestep=0.0;
@@ -149,7 +144,7 @@ namespace GlobalVariables
 
  //Characteristic time of reaction
  double char_time=1e-4*char_length*char_length/diffusivity;
-*/
+ 
  //Function to set tau(C)
  void activator_inhibitor_tau(const Vector<double> &C,
 			      const DenseMatrix <double> &dCdx,
@@ -158,17 +153,17 @@ namespace GlobalVariables
   //////////////////////////////////////////////////
   ////////These are for the actual model////////////
   //////////////////////////////////////////////////
-  /*
+  
   Tau[0]=(1-C[4]);
   Tau[1]=A1;
   Tau[2]=1/1000;
   Tau[3]=1/1000;
   Tau[4]=1.0;
-  */
+  
   //////////////////////////////////////////////////
   ////////These are for the viscous burgers////////////
   //////////////////////////////////////////////////
-  Tau[0]=1.0;
+  //Tau[0]=1.0;
  }
 
  void activator_inhibitor_diff(const Vector<double> &C,
@@ -178,18 +173,18 @@ namespace GlobalVariables
   //////////////////////////////////////////////////
   ////////These are for the actual model////////////
   //////////////////////////////////////////////////
-  /*
+  
   Diff[0]=1.0;
   Diff[1]=A2;
   Diff[2]=0.0;
   Diff[3]=0.0;
   Diff[4]=0.0;
-  */
+  
 
   //////////////////////////////////////////////////
   ////////These are for the viscous burgers////////////
   //////////////////////////////////////////////////
-  Diff[0]=0.1;
+  //Diff[0]=1.0;
  }
  
  //Function to set reaction term
@@ -202,7 +197,7 @@ namespace GlobalVariables
   ////////These are for the actual model////////////
   //////////////////////////////////////////////////
 
-  /*
+  
   //Reaction term in mass conservation and energy conservation equations
   //includes df/dt, so I've included the equation from the FD here.
   //a^2 /D comes from the non-dimensionalisation of time
@@ -232,13 +227,13 @@ namespace GlobalVariables
   R[2]=0.0;
   R[3]=C[2]-(dCdx(3,0)-B1*(C[1]-1.0)-(B2*C[4]+(1-C[4])*B3*C[0]));
   R[4]=-dfdt_FD;
-  */
+  
 
   //////////////////////////////////////////////////
   ////////These are for the viscous burgers////////////
   //////////////////////////////////////////////////
   //R[0] =C[0]*dCdx(0,0);
-  R[0]=0.0;
+  //R[0]=0.0;
  }
 
  //Function to set F term
@@ -250,20 +245,20 @@ namespace GlobalVariables
   //////////////////////////////////////////////////
   ////////These are for the actual model////////////
   //////////////////////////////////////////////////
-  /*
+  
   F[0]=(Q*C[0]*dCdx(1,0))/(R*T0*C[1]*C[1])-(Vh*E*C[0]*dCdx(2,0))/(R*T0*C[1]);
   F[1]=0.0;
   F[2]=C[2];
   F[3]=0.0;
   F[4]=0.0;
-  */
+  
 
   //////////////////////////////////////////////////
   ////////These are for the viscous Burgers////////////
   //////////////////////////////////////////////////
 
-  //F[0]=0;
-  F[0]=-0.5*C[0]*C[0];
+  // F[0]=0;
+  //F[0]=-0.5*C[0]*C[0];
  }
 
  //Function to set R derivative term by hand
@@ -293,12 +288,6 @@ namespace GlobalVariables
   // Calculate the solution here...
  }
 
- 
- //////////////////////////////////////////////////
- ////////These are for the actual model////////////
- //////////////////////////////////////////////////
-
- /*
  void prescribed_flux_on_outer_boundary(const Vector<double>& x,
 					const Vector<double>& C,
 					Vector<double>& flux)
@@ -323,8 +312,6 @@ namespace GlobalVariables
   flux[3]=0.0;
   flux[4]=0.0;
  }
-
- */
 }
 //======start_of_problem_class============================================
 /// 1D AdvectionDiffusionReaction problem discretised with refineable
@@ -360,19 +347,19 @@ private:
  /// \short Create Advection Diffusion flux elements on boundary b of 
  /// the Mesh pointed to by bulk_mesh_pt and add them to the Mesh 
  /// object pointed to by surface_mesh_pt
-/* void create_flux_elements(const unsigned &b, Mesh* const &bulk_mesh_pt,
+ void create_flux_elements(const unsigned &b, Mesh* const &bulk_mesh_pt,
                            Mesh* const &surface_mesh_pt);
 
  /// \short Delete Advection Diffusion flux elements and wipe the surface mesh
  void delete_flux_elements(Mesh* const &surface_mesh_pt);
-*/
+
  /// Pointer to the "bulk" mesh
- //sOneDMesh<ELEMENT>* mesh_pt();
-/*
+ OneDMesh<ELEMENT>* Bulk_mesh_pt;
+
  /// Pointer to the "surface" mesh
  Mesh* Outer_surface_mesh_pt;
  Mesh* Inner_surface_mesh_pt;
-*/
+ 
 }; // End of problem class
 
 //=====start_of_constructor===============================================
@@ -388,38 +375,21 @@ RefineableOneDAdvectionDiffusionReactionProblem()
  
  // Set up the mesh
  // Number of elements initially
- //////////////////////////////////////////////////
- ////////These are for the actual model////////////
- //////////////////////////////////////////////////
- //const unsigned n = 1000;
 
+ const unsigned n = 1000;
 
- //////////////////////////////////////////////////
- ////////These are for the VBE////////////
- //////////////////////////////////////////////////
- const unsigned n=2000;
- 
  // Domain length
-
- //////////////////////////////////////////////////
- ////////These are for the actual model////////////
- //////////////////////////////////////////////////
- //const double length = 1.0;
-
- //////////////////////////////////////////////////
- ////////These are for the VBE////////////
- /////////////////////////////////////////////////
-
+ const double length = 1.0;
  const double pi=acos(-1);
- const double length=2*pi;
  
  
  // Build and assign the refineable mesh, need to pass in number of
  // elements, length and the timestepper
- Problem::mesh_pt() =
+ Bulk_mesh_pt =
   new /*Refineable*/OneDMesh<ELEMENT>(n,length,Problem::time_stepper_pt());
 
- 
+ //Bulk_mesh_pt->boundary_node_pt(0,0)
+ //->make_periodic(Bulk_mesh_pt->boundary_node_pt(1,0));
  /*
  //Hollyyyyy - this was part of de-bugging
  unsigned nnode=mesh_pt()->nnode();
@@ -433,18 +403,14 @@ RefineableOneDAdvectionDiffusionReactionProblem()
  
  //Output the initial mesh
  unsigned nplot=5;
- ofstream filename("RESLT2/initial_mesh.dat");
- this->mesh_pt()->output(filename,nplot);
+ ofstream filename("RESLT/initial_mesh2.vtu");
+ this->Bulk_mesh_pt->output_paraview(filename,nplot);
 
   
  //----------------------------------------------
  // Set the boundary conditions for this problem.
  //----------------------------------------------
- //////////////////////////////////////////////////
- ////////These are for the actual model////////////
- //////////////////////////////////////////////////
-
- /*
+ 
  // The ID of the leftmost boundary (OUTER)
  unsigned left_boundary_id=0;
  
@@ -574,19 +540,22 @@ RefineableOneDAdvectionDiffusionReactionProblem()
    }
   }
  }
- */
+
  //----------------------------------------------
  //----------------------------------------------
  //----------------------------------------------
  //----------------------------------------------
 
- //////////////////////////////////////////////////
- ////////These are for the VBE////////////
- //////////////////////////////////////////////////
- 
+//Hollyyyyy: viscous Burgers equation
+//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+// CHANGE THE PREVIOUS REFERENCES
+// WITHIN THE PROBLEM CONSTRUCTOR FROM
+// BULK_MESH_PT BACK TO MESH_PT().
+//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
  
  //
  // Set zero Dirichlet conditions for the boundaries...
+/*
 // The ID of the leftmost boundary
 unsigned left_boundary_id=0;
  
@@ -598,25 +567,19 @@ unsigned right_boundary_id=1;
 unsigned i_node=0;
 mesh_pt()->boundary_node_pt(left_boundary_id,i_node)->pin(0);
 mesh_pt()->boundary_node_pt(right_boundary_id,i_node)->pin(0);
-
-// ...or make the domain periodic by setting the values at the left-hand boundary
+*/
+ // ...or make the domain periodic by setting the values at the left-hand boundary
  // equal to those on the right
-
-//unsigned i_node=0;
-//mesh_pt()->boundary_node_pt(left_boundary_id,i_node)
-//->make_periodic(mesh_pt()->boundary_node_pt(right_boundary_id,i_node));
+ //mesh_pt()->boundary_node_pt(left_boundary_id,i_node)
+ //->make_periodic(mesh_pt()->boundary_node_pt(right_boundary_id,i_node));
  
  //----------------------------------------------
  //----------------------------------------------
 
 
 
-
+ //Hollyyyyy
  //Trying to pin different things to see which cause the non-converging residuals
- //////////////////////////////////////////////////
- ////////These are for the actual model////////////
- //////////////////////////////////////////////////
-/*
  n_node=Bulk_mesh_pt->nnode();
  for (unsigned n=0;n<n_node;n++)
  {
@@ -636,18 +599,18 @@ mesh_pt()->boundary_node_pt(right_boundary_id,i_node)->pin(0);
   //Bulk_mesh_pt->node_pt(n)->set_value(4,0.0);
   //Bulk_mesh_pt->node_pt(n)->pin(4);
  }
-*/
+ 
  
  // Loop over the elements to set up element-specific things that cannot
  // be handled by the (argument-free!) ELEMENT constructor: Pass pointer
  // to source function
  //Get the number of elements in the bulk
-const unsigned n_element = mesh_pt()->nelement();
+ const unsigned n_element = Bulk_mesh_pt->nelement();
  //Loop over the bulk elements
  for(unsigned i=0;i<n_element;i++)
  {
   // Upcast from GeneralisedElement to the present element
-  ELEMENT *elem_pt = dynamic_cast<ELEMENT*>(mesh_pt()->element_pt(i));
+  ELEMENT *elem_pt = dynamic_cast<ELEMENT*>(Bulk_mesh_pt->element_pt(i));
 
   //Set the diffusion coefficients
   elem_pt->diff_fct_pt() = &GlobalVariables::activator_inhibitor_diff;
@@ -663,13 +626,6 @@ const unsigned n_element = mesh_pt()->nelement();
   elem_pt->tau_fct_pt() = &GlobalVariables::activator_inhibitor_tau;
 
  }
-
- //////////////////////////////////////////////////
- ////////These are for the actual model////////////
- //////////////////////////////////////////////////
-
-
- /*
 //---------------------------------------------------------------------
  // Loop over the flux elements to pass pointer to prescribed flux function
  unsigned n_surface_element=Outer_surface_mesh_pt->nelement();
@@ -700,7 +656,6 @@ const unsigned n_element = mesh_pt()->nelement();
   el_pt->flux_fct_pt() = 
    &GlobalVariables::prescribed_flux_on_inner_boundary;
  }
- */
  
 //--------------------------------------------------------------------- 
  // Set up equation numbering scheme
@@ -708,10 +663,6 @@ const unsigned n_element = mesh_pt()->nelement();
  
 } // End of constructor
 
-
-
-
-/*
 //============start_of_create_flux_elements==============================
 /// Create AdvectionDiffusion Flux Elements on the b-th boundary of 
 /// the Mesh object pointed to by bulk_mesh_pt and add the elements 
@@ -766,7 +717,7 @@ delete_flux_elements(Mesh* const &surface_mesh_pt)
  surface_mesh_pt->flush_element_and_node_storage();
 
 } // end of delete_flux_elements
-*/
+
 
 //=====================================================================
 /// Set the initial conditions 
@@ -776,40 +727,35 @@ void RefineableOneDAdvectionDiffusionReactionProblem<ELEMENT>::
 set_initial_condition()
 {
  // Backup time in global Time object
- //double backed_up_time=time_pt()->time();
+ double backed_up_time=time_pt()->time();
  //Set the initial concentrations of the reagent
  //Get the number of nodes in the bulk
- unsigned n_node =mesh_pt()->nnode();
+ unsigned n_node = Bulk_mesh_pt->nnode();
  
  // Set continuous times at previous timesteps:
  // How many previous timesteps does the timestepper use?
- //int nprev_steps=time_stepper_pt()->nprev_values();
- //Vector<double> prev_time(nprev_steps+1);
- //for (int t=nprev_steps;t>=0;t--)
- //{
- //prev_time[t]=time_pt()->time(unsigned(t));
- //}
+ int nprev_steps=time_stepper_pt()->nprev_values();
+ Vector<double> prev_time(nprev_steps+1);
+ for (int t=nprev_steps;t>=0;t--)
+ {
+  prev_time[t]=time_pt()->time(unsigned(t));
+ }
 
  // Loop over current & previous timesteps
- //for (int t=nprev_steps;t>=0;t--)
- //{
+ for (int t=nprev_steps;t>=0;t--)
+ {
   // Continuous time
-  //double time=prev_time[t];
-  //cout << "setting IC at time =" << time << std::endl;
+  double time=prev_time[t];
+  cout << "setting IC at time =" << time << std::endl;
   //Loop over the nodes in the bulk
   for(unsigned n=0;n<n_node;n++)
   {
    //Local pointer to the node in the bulk
-   Node* nod_pt = mesh_pt()->node_pt(n);   
+   Node* nod_pt = Bulk_mesh_pt->node_pt(n);   
 
-   //const double pi=3.141592654;
+   const double pi=3.141592654;
    double x=nod_pt->x(0);
 
-
-   //////////////////////////////////////////////////
-   ////////These are for the actual model////////////
-   //////////////////////////////////////////////////
-   /*
    //Intial small concentration value everywhere
    double initial_concentration=0.1;
    //Initial temperature:scaled such that RT=1.0
@@ -827,30 +773,22 @@ set_initial_condition()
    nod_pt->set_value(t,3,0.0);
    //Set the initial hydride volume fraction to zero
    nod_pt->set_value(t,4,initial_volfrac);
-   */
-
-   //////////////////////////////////////////////////
-   ////////These are for the VBE////////////
-   //////////////////////////////////////////////////
-   double initial=sin(x);
-   nod_pt->set_value(0,initial);
-   
   }//Finish loop over bulk nodes
 
-// }//Finish loop over previous timesteps
+ }//Finish loop over previous timesteps
  
  // Reset backed up time for global timestepper
- //time_pt()->time()=backed_up_time;
+ time_pt()->time()=backed_up_time;
  //Document the initial solution
- ofstream filename("RESLT2/step0.dat");
+ ofstream filename("RESLT/step0.vtu");
  //Plot the solution with 5 points per element
- mesh_pt()->output(filename,5);
+ Bulk_mesh_pt->output_paraview(filename,5);
  filename.close();
  //Set the initial values impulsive
  //i.e. assume that the solution has been at the initial condition for all
  //previous times
- assign_initial_values_impulsive(Dt);
- //initialise_dt(Dt);
+ //assign_initial_values_impulsive(Dt);
+ initialise_dt(Dt);
 }
 //====================================================================
 /// Timestep the problem for nstep timesteps of length dt
@@ -879,9 +817,9 @@ unsteady_newton_solve(Dt);
  //Output the result
  unsigned i=0;
  char file1[100];
- sprintf(file1,"RESLT2/step%i.dat",i+1);
+ sprintf(file1,"RESLT/step%i.vtu",i+1);
  ofstream out1(file1);
- mesh_pt()->output(out1,5);
+ Bulk_mesh_pt->output_paraview(out1,5);
  out1.close();
 
  //Zero rounds of adaptation per timestep
@@ -900,10 +838,10 @@ unsteady_newton_solve(Dt);
   //Output the result
 
   char file1[100];
-  sprintf(file1,"RESLT/step%i.dat",i+1);
+  sprintf(file1,"RESLT/step%i.vtu",i+1);
 
   ofstream out1(file1);
-  mesh_pt()->output(out1,5);
+  Bulk_mesh_pt->output_paraview(out1,5);
 
   out1.close();
  }
@@ -925,44 +863,12 @@ unsteady_newton_solve(Dt);
 
 int main()
 {
-
- //////////////////////////////////////////////////
- ////////These are for the actual model////////////
- //////////////////////////////////////////////////
-/* 
  //Set the timestep
  double dt = 0.001;
  GlobalVariables::timestep=dt;
 
  //Set the number of timesteps to be taken
  unsigned nstep=500;
-*/
- //Set up the problem
- //------------------
- // DREIGIAU: There's an inherent problem with the 1D elements. Doesn't
- // seem to be a problem with 2D elements but we can't even initialise
- // a new object of the type used to template the problem below.
- // Create the problem with 1D three-node refineable elements from the
- // RefineableLineAdvectionDiffusionReactionElement family.
- 
- //RefineableOneDAdvectionDiffusionReactionProblem<
-  ///*Refineable*/QAdvectionDiffusionReactionElement<5,1,3> > problem;
- //Take four levels of uniform refinement to start things off
- //for(unsigned i=0;i<4;i++) { problem.refine_uniformly(); }
- //Now timestep the problem
- //problem.timestep(dt,nstep);
-
-
-  //////////////////////////////////////////////////
- ////////These are for the actual model////////////
- //////////////////////////////////////////////////
-
-  //Set the timestep
- double dt = 0.001;
-// GlobalVariables::timestep=dt;
-
- //Set the number of timesteps to be taken
- unsigned nstep=2000;
  
  //Set up the problem
  //------------------
@@ -973,7 +879,7 @@ int main()
  // RefineableLineAdvectionDiffusionReactionElement family.
  
  RefineableOneDAdvectionDiffusionReactionProblem<
-  /*Refineable*/QAdvectionDiffusionReactionElement<1,1,3> > problem;
+  /*Refineable*/QAdvectionDiffusionReactionElement<5,1,3> > problem;
  //Take four levels of uniform refinement to start things off
  //for(unsigned i=0;i<4;i++) { problem.refine_uniformly(); }
  //Now timestep the problem
