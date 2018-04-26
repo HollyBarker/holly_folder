@@ -237,8 +237,8 @@ namespace GlobalVariables
   //////////////////////////////////////////////////
   ////////These are for the viscous burgers////////////
   //////////////////////////////////////////////////
-  R[0] =C[0]*dCdx(0,0);
-  //R[0]=0.0;
+  //R[0] =C[0]*dCdx(0,0);
+  R[0]=0.0;
  }
 
  //Function to set F term
@@ -262,8 +262,8 @@ namespace GlobalVariables
   ////////These are for the viscous Burgers////////////
   //////////////////////////////////////////////////
 
-  F[0]=0;
-  //F[0]=-0.5*C[0]*C[0];
+  //F[0]=0;
+  F[0]=0.5*C[0]*C[0];
  }
 
  //Function to set R derivative term by hand
@@ -433,7 +433,7 @@ RefineableOneDAdvectionDiffusionReactionProblem()
  
  //Output the initial mesh
  unsigned nplot=5;
- ofstream filename("RESLT/initial_mesh.dat");
+ ofstream filename("RESLT2/initial_mesh.dat");
  this->mesh_pt()->output(filename,nplot);
 
   
@@ -842,7 +842,7 @@ set_initial_condition()
  // Reset backed up time for global timestepper
  //time_pt()->time()=backed_up_time;
  //Document the initial solution
- ofstream filename("RESLT/step0.dat");
+ ofstream filename("RESLT2/step0.dat");
  //Plot the solution with 5 points per element
  mesh_pt()->output(filename,5);
  filename.close();
@@ -879,7 +879,7 @@ unsteady_newton_solve(Dt);
  //Output the result
  unsigned i=0;
  char file1[100];
- sprintf(file1,"RESLT/step%i.dat",i+1);
+ sprintf(file1,"RESLT2/step%i.dat",i+1);
  ofstream out1(file1);
  mesh_pt()->output(out1,5);
  out1.close();
