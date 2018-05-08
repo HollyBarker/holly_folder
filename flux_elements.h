@@ -585,6 +585,8 @@ namespace oomph
      if(local_eqn >= 0)
      {
       //Add the prescribed flux terms
+      //Multiplied by the 'diffusivity' in the demo driver
+      //because concentration diffusivity \neq D[0]
       residuals[local_eqn] += flux[i]*testf[l]*W;
 
       

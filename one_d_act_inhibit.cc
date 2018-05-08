@@ -95,7 +95,7 @@ namespace GlobalVariables
  double C0=1.0;
 
  //Diffusivity (J.B. Condon - 1974) (assumed constant) [m^2 s^-1]
- double diffusivity=1.0;//(1.9e-6)*exp(-5820/T0);
+ double diffusivity=0.2;//(1.9e-6)*exp(-5820/T0);
 
  //Partial molal volume of hydrogen (Dutton 1977) [m^3 mol^-1]
  double Vh=7e-7;
@@ -292,7 +292,7 @@ namespace GlobalVariables
 					const Vector<double>& C,
 					Vector<double>& flux)
  {
-  flux[0]=lambda_C*(1-C[0])/diffusivity;
+  flux[0]=lambda_C*(1-C[0]);
    //+(Q*C[0]/(R*T0*C[1]*C[1]))*(lambda_T*(1-C[1])/kappa);
   flux[1]=A2*lambda_T*(1-C[1])/kappa;
   //flux[0]=0.0;
@@ -380,7 +380,7 @@ RefineableOneDAdvectionDiffusionReactionProblem()
 
  // Domain length
  const double length = 1.0;
- const double pi=acos(-1);
+// const double pi=acos(-1);
  
  
  // Build and assign the refineable mesh, need to pass in number of
@@ -403,7 +403,7 @@ RefineableOneDAdvectionDiffusionReactionProblem()
  
  //Output the initial mesh
  unsigned nplot=5;
- ofstream filename("RESLT/initial_mesh2.vtu");
+ ofstream filename("RESLT_MED_DIFFUSION/initial_mesh2.vtu");
  this->Bulk_mesh_pt->output_paraview(filename,nplot);
 
   
@@ -429,11 +429,11 @@ RefineableOneDAdvectionDiffusionReactionProblem()
  // adjacent to boundary 0, but add them to a separate mesh.
  // Note that this is exactly the same function as used in the 
  // single mesh version of the problem, we merely pass different Mesh pointers.
- create_flux_elements(left_boundary_id,Bulk_mesh_pt,Outer_surface_mesh_pt);
+ create_flux_elements(right_boundary_id,Bulk_mesh_pt,Outer_surface_mesh_pt);
  
  // Repeat for the 'inner' boundary
  Inner_surface_mesh_pt= new Mesh;
- create_flux_elements(right_boundary_id,Bulk_mesh_pt,Inner_surface_mesh_pt);
+ create_flux_elements(left_boundary_id,Bulk_mesh_pt,Inner_surface_mesh_pt);
  
  // Add the sub meshes to the problem
  add_sub_mesh(Bulk_mesh_pt);
@@ -456,7 +456,7 @@ RefineableOneDAdvectionDiffusionReactionProblem()
  for(unsigned b=0;b<n_bound;b++)
  {
   //Set pinned outer boundary Dirichlet conditions
-  if (b==0)
+  if (b==1)
   {
    //Get the number of nodes on the boundary
    n_node = Bulk_mesh_pt->nboundary_node(b);
@@ -497,7 +497,7 @@ RefineableOneDAdvectionDiffusionReactionProblem()
    }
   }
   //Set pinned inner boundary Dirichlet conditions
-  if (b==1)
+  if (b==0)
   {
    //Get the number of nodes on the boundary
    n_node = Bulk_mesh_pt->nboundary_node(b);
@@ -580,6 +580,7 @@ mesh_pt()->boundary_node_pt(right_boundary_id,i_node)->pin(0);
 
  //Hollyyyyy
  //Trying to pin different things to see which cause the non-converging residuals
+ /*
  n_node=Bulk_mesh_pt->nnode();
  for (unsigned n=0;n<n_node;n++)
  {
@@ -599,7 +600,7 @@ mesh_pt()->boundary_node_pt(right_boundary_id,i_node)->pin(0);
   //Bulk_mesh_pt->node_pt(n)->set_value(4,0.0);
   //Bulk_mesh_pt->node_pt(n)->pin(4);
  }
- 
+ */ 
  
  // Loop over the elements to set up element-specific things that cannot
  // be handled by the (argument-free!) ELEMENT constructor: Pass pointer
@@ -753,8 +754,8 @@ set_initial_condition()
    //Local pointer to the node in the bulk
    Node* nod_pt = Bulk_mesh_pt->node_pt(n);   
 
-   const double pi=3.141592654;
-   double x=nod_pt->x(0);
+//   const double pi=3.141592654;
+//   double x=nod_pt->x(0);
 
    //Intial small concentration value everywhere
    double initial_concentration=0.1;
@@ -780,7 +781,7 @@ set_initial_condition()
  // Reset backed up time for global timestepper
  time_pt()->time()=backed_up_time;
  //Document the initial solution
- ofstream filename("RESLT/step0.vtu");
+ ofstream filename("RESLT_MED_DIFFUSION/step0.vtu");
  //Plot the solution with 5 points per element
  Bulk_mesh_pt->output_paraview(filename,5);
  filename.close();
@@ -817,7 +818,7 @@ unsteady_newton_solve(Dt);
  //Output the result
  unsigned i=0;
  char file1[100];
- sprintf(file1,"RESLT/step%i.vtu",i+1);
+ sprintf(file1,"RESLT_MED_DIFFUSION/step%i.vtu",i+1);
  ofstream out1(file1);
  Bulk_mesh_pt->output_paraview(out1,5);
  out1.close();
@@ -838,7 +839,7 @@ unsteady_newton_solve(Dt);
   //Output the result
 
   char file1[100];
-  sprintf(file1,"RESLT/step%i.vtu",i+1);
+  sprintf(file1,"RESLT_MED_DIFFUSION/step%i.vtu",i+1);
 
   ofstream out1(file1);
   Bulk_mesh_pt->output_paraview(out1,5);
@@ -864,11 +865,11 @@ unsteady_newton_solve(Dt);
 int main()
 {
  //Set the timestep
- double dt = 0.001;
+ double dt = 0.008;
  GlobalVariables::timestep=dt;
 
  //Set the number of timesteps to be taken
- unsigned nstep=500;
+ unsigned nstep=2000;
  
  //Set up the problem
  //------------------
