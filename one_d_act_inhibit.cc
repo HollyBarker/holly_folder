@@ -95,7 +95,7 @@ namespace GlobalVariables
  double C0=1.0;
 
  //Diffusivity (J.B. Condon - 1974) (assumed constant) [m^2 s^-1]
- double diffusivity=0.2;//(1.9e-6)*exp(-5820/T0);
+ double diffusivity=0.05;//(1.9e-6)*exp(-5820/T0);
 
  //Partial molal volume of hydrogen (Dutton 1977) [m^3 mol^-1]
  double Vh=7e-7;
@@ -202,8 +202,8 @@ namespace GlobalVariables
   //includes df/dt, so I've included the equation from the FD here.
   //a^2 /D comes from the non-dimensionalisation of time
   double dfdt_FD;
-  double tempdfdt_FD=((1-C[4])*(C[0]-CTSS)*a*a)/
-   ((char_time+timestep)*(diffusivity)*(Cb-CTSS));
+  double tempdfdt_FD=((1-C[4])*(C[0]-CTSS))*a*a/
+   ((char_time+timestep)*(Cb-CTSS)*diffusivity);
   //If volume fraction change will be negative and larger than the current value of C[4]
   if (tempdfdt_FD<0 && C[4]<=0)
   {
@@ -403,7 +403,7 @@ RefineableOneDAdvectionDiffusionReactionProblem()
  
  //Output the initial mesh
  unsigned nplot=5;
- ofstream filename("RESLT_MED_DIFFUSION/initial_mesh2.vtu");
+ ofstream filename("NON-DIM-TAU/RESLT_SLOW_DIFFUSION/initial_mesh2.vtu");
  this->Bulk_mesh_pt->output_paraview(filename,nplot);
 
   
@@ -781,7 +781,7 @@ set_initial_condition()
  // Reset backed up time for global timestepper
  time_pt()->time()=backed_up_time;
  //Document the initial solution
- ofstream filename("RESLT_MED_DIFFUSION/step0.vtu");
+ ofstream filename("NON-DIM-TAU/RESLT_SLOW_DIFFUSION/step0.vtu");
  //Plot the solution with 5 points per element
  Bulk_mesh_pt->output_paraview(filename,5);
  filename.close();
@@ -818,7 +818,7 @@ unsteady_newton_solve(Dt);
  //Output the result
  unsigned i=0;
  char file1[100];
- sprintf(file1,"RESLT_MED_DIFFUSION/step%i.vtu",i+1);
+ sprintf(file1,"NON-DIM-TAU/RESLT_SLOW_DIFFUSION/step%i.vtu",i+1);
  ofstream out1(file1);
  Bulk_mesh_pt->output_paraview(out1,5);
  out1.close();
@@ -839,7 +839,7 @@ unsteady_newton_solve(Dt);
   //Output the result
 
   char file1[100];
-  sprintf(file1,"RESLT_MED_DIFFUSION/step%i.vtu",i+1);
+  sprintf(file1,"NON-DIM-TAU/RESLT_SLOW_DIFFUSION/step%i.vtu",i+1);
 
   ofstream out1(file1);
   Bulk_mesh_pt->output_paraview(out1,5);
@@ -865,7 +865,7 @@ unsteady_newton_solve(Dt);
 int main()
 {
  //Set the timestep
- double dt = 0.008;
+ double dt = 0.002;
  GlobalVariables::timestep=dt;
 
  //Set the number of timesteps to be taken
