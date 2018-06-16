@@ -4,7 +4,7 @@
 #include "flux_elements.h"
 #include "bulk_elements.cc"
 #include "bulk_elements.h"
-
+#include "generic/oomph_utilities.h"
 
 //===========================
 //DEMODRIVER FILE STARTS HERE
@@ -68,7 +68,12 @@ namespace GlobalVariables
 
  //Needed for the FD calculation of df/dt
  //This is set in main
- double timestep=0.0;
+ double timestep;
+
+ //Diffusivity is set in main
+ double diffusivity;
+ //Diffusivity (J.B. Condon - 1974) (assumed constant) [m^2 s^-1]
+ //double diffusivity=1.0;//(1.9e-6)*exp(-5820/T0);
  
  //The timescale parameters (multiplying the time derivatives)
  //These are set in the function activator_inhibitor_tau
@@ -83,6 +88,7 @@ namespace GlobalVariables
  double lambda_T=1.0;
 
  //Young's modulus (Fisher 1965) [Pa]
+ //208 GPa(=2.08e11) http://periodictable.com/Elements/092/data.html
  double E=1.0;//1.9e11;
 
  //Coefficient of thermal expansion
@@ -93,9 +99,6 @@ namespace GlobalVariables
  //Concentration scaling - atmospheric concentration of hydrogen is set to
  //1.0 [mol/m^3]
  double C0=1.0;
-
- //Diffusivity (J.B. Condon - 1974) (assumed constant) [m^2 s^-1]
- double diffusivity=0.05;//(1.9e-6)*exp(-5820/T0);
 
  //Partial molal volume of hydrogen (Dutton 1977) [m^3 mol^-1]
  double Vh=7e-7;
@@ -123,7 +126,7 @@ namespace GlobalVariables
 
  //Set the constants multiplying terms in energy conservation 
  double A1=(rho*c_p*T0*VHr)/EoF;
- double A2=(T0*VHr*kappa)/(diffusivity*EoF);
+ //A2 is set in update_parameters()
  double A3=(C0*R*T0*VHr)/EoF;
  double A4=C0*Q*VHr/EoF;
  double A5=(-2*C0*Q*VHr*Vh*E)/EoF;
@@ -142,8 +145,23 @@ namespace GlobalVariables
  //This is used to nondimensionalise t=a^2 t' / D
  double a=0.1;
 
- //Characteristic time of reaction
- double char_time=1e-4*char_length*char_length/diffusivity;
+ //----------------------------------------------------------------------
+ //These should JUST be inside update_parameters(), but then the tau and
+ //diff functions complain.
+ //This temp solution should be fine since the functions which set diff
+ //and tau are called each time they are used at runtime.
+ 
+  double A2; 
+  //Characteristic time of reaction
+  double char_time;
+ //--------------------------------------------------------------------
+
+ void update_parameters()
+ {
+  GlobalVariables::A2=(T0*VHr*kappa)/(diffusivity*EoF); 
+  //Characteristic time of reaction
+  GlobalVariables::char_time=1e-4*char_length*char_length/diffusivity;
+ }
  
  //Function to set tau(C)
  void activator_inhibitor_tau(const Vector<double> &C,
@@ -156,8 +174,8 @@ namespace GlobalVariables
   
   Tau[0]=(1-C[4]);
   Tau[1]=A1;
-  Tau[2]=1/1000;
-  Tau[3]=1/1000;
+  Tau[2]=0.0;
+  Tau[3]=0.0;
   Tau[4]=1.0;
   
   //////////////////////////////////////////////////
@@ -203,7 +221,10 @@ namespace GlobalVariables
   //a^2 /D comes from the non-dimensionalisation of time
   double dfdt_FD;
   double tempdfdt_FD=((1-C[4])*(C[0]-CTSS))*a*a/
-   ((char_time+timestep)*(Cb-CTSS)*diffusivity);
+  ((char_time+timestep)*(Cb-CTSS)*diffusivity);
+
+  //TRYING new temp_dfdt
+  //double tempdfdt_FD=((1-C[4])*(C[0]-CTSS)*a*a)/(char_time*(Cb-CTSS)*diffusivity);
   //If volume fraction change will be negative and larger than the current value of C[4]
   if (tempdfdt_FD<0 && C[4]<=0)
   {
@@ -219,11 +240,11 @@ namespace GlobalVariables
   }
   
   R[0]=dfdt_FD*(Cb-C[0]);
-  R[1]=dfdt_FD - (A3*C[1]*dCdx(0,0)*dCdx(0,0)/C[0]
-		  +A4*dCdx(0,0)*dCdx(1,0)/C[1]
-		  +A5*dCdx(0,0)*dCdx(2,0)
-		  +A6*C[0]*dCdx(1,0)*dCdx(2,0)/(C[1]*C[1])
-		  +A7*C[0]*dCdx(2,0)*dCdx(2,0)/C[1]);
+  R[1]=dfdt_FD- (A3*C[1]*dCdx(0,0)*dCdx(0,0)/C[0]
+		 +A4*dCdx(0,0)*dCdx(1,0)/C[1]
+		 +A5*dCdx(0,0)*dCdx(2,0)
+		 +A6*C[0]*dCdx(1,0)*dCdx(2,0)/(C[1]*C[1])
+		 +A7*C[0]*dCdx(2,0)*dCdx(2,0)/C[1]);
   R[2]=0.0;
   R[3]=C[2]-(dCdx(3,0)-B1*(C[1]-1.0)-(B2*C[4]+(1-C[4])*B3*C[0]));
   R[4]=-dfdt_FD;
@@ -380,7 +401,7 @@ RefineableOneDAdvectionDiffusionReactionProblem()
 
  // Domain length
  const double length = 1.0;
-// const double pi=acos(-1);
+// Const double pi=acos(-1);
  
  
  // Build and assign the refineable mesh, need to pass in number of
@@ -400,12 +421,28 @@ RefineableOneDAdvectionDiffusionReactionProblem()
  time_stepper_pt()->assign_initial_positions_impulsive(
  mesh_pt()->node_pt(i));
  }*/
+
+ //Get the diffusivity
+ double diff=GlobalVariables::diffusivity;
+ int diffno=10*diff;
  
  //Output the initial mesh
  unsigned nplot=5;
- ofstream filename("NON-DIM-TAU/RESLT_SLOW_DIFFUSION/initial_mesh2.vtu");
- this->Bulk_mesh_pt->output_paraview(filename,nplot);
 
+ //Output the initial mesh (.vtu for paraview)
+ char file1[100];
+ sprintf(file1,"SYSTEM_0_FULL_MODEL/RESLT_DIFFUSION_0._05/initial_mesh2.vtu");
+ ofstream out1(file1);
+ this->Bulk_mesh_pt->output_paraview(out1,nplot);
+ out1.close();
+
+  //Output the initial mesh (.dat for matlab)
+ char file2[100];
+ sprintf(file2,"SYSTEM_0_FULL_MODEL/RESLT_DIFFUSION_0._05/initial_mesh2.dat");
+ ofstream out2(file2);
+ this->Bulk_mesh_pt->output(out2,nplot);
+ out2.close();
+  
   
  //----------------------------------------------
  // Set the boundary conditions for this problem.
@@ -780,11 +817,25 @@ set_initial_condition()
  
  // Reset backed up time for global timestepper
  time_pt()->time()=backed_up_time;
- //Document the initial solution
- ofstream filename("NON-DIM-TAU/RESLT_SLOW_DIFFUSION/step0.vtu");
- //Plot the solution with 5 points per element
- Bulk_mesh_pt->output_paraview(filename,5);
- filename.close();
+
+ //Get diffusivity
+ double diff=GlobalVariables::diffusivity;
+ int diffno=diff*10;
+ 
+ //Output the initial solution (.vtu for paraview)
+ char file1[100];
+ sprintf(file1,"SYSTEM_0_FULL_MODEL/RESLT_DIFFUSION_0._05/step0.vtu");
+ ofstream out1(file1);
+ Bulk_mesh_pt->output_paraview(out1,5);
+ out1.close();
+
+ //Output the initial solution (.dat for matlab)
+ char file2[100];
+ sprintf(file2,"SYSTEM_0_FULL_MODEL/RESLT_DIFFUSION_0._05/step0.dat");
+ ofstream out2(file2);
+ Bulk_mesh_pt->output(out2,5);
+ out2.close();
+ 
  //Set the initial values impulsive
  //i.e. assume that the solution has been at the initial condition for all
  //previous times
@@ -812,16 +863,27 @@ void RefineableOneDAdvectionDiffusionReactionProblem<ELEMENT>::timestep(
  
  //Solve the first step (one solve is done before adapting the mesh)
  //Spatial adaptivity does not work here
-unsteady_newton_solve(Dt);
-// newton_solve();
-
- //Output the result
+ unsteady_newton_solve(Dt);
+ // newton_solve();
+ 
+ //Get diffusivity
+ double diff=GlobalVariables::diffusivity;
+ int diffno=diff*10;
+ 
+ //Output the result (paraview)
  unsigned i=0;
  char file1[100];
- sprintf(file1,"NON-DIM-TAU/RESLT_SLOW_DIFFUSION/step%i.vtu",i+1);
+ sprintf(file1,"SYSTEM_0_FULL_MODEL/RESLT_DIFFUSION_0._05/step%i.vtu",i+1);
  ofstream out1(file1);
  Bulk_mesh_pt->output_paraview(out1,5);
  out1.close();
+
+ //Output the result (matlab)
+ char file2[100];
+ sprintf(file2,"SYSTEM_0_FULL_MODEL/RESLT_DIFFUSION_0._05/step%i.dat",i+1);
+ ofstream out2(file2);
+ Bulk_mesh_pt->output(out2,5);
+ out2.close();
 
  //Zero rounds of adaptation per timestep
  max_adapt = 0;
@@ -836,15 +898,20 @@ unsteady_newton_solve(Dt);
   //Take a timestep
  
   unsteady_newton_solve(dt,max_adapt,first);
-  //Output the result
-
+  
+  //Output the result (.vtu for paraview)
   char file1[100];
-  sprintf(file1,"NON-DIM-TAU/RESLT_SLOW_DIFFUSION/step%i.vtu",i+1);
-
+  sprintf(file1,"SYSTEM_0_FULL_MODEL/RESLT_DIFFUSION_0._05/step%i.vtu",i+1);
   ofstream out1(file1);
   Bulk_mesh_pt->output_paraview(out1,5);
-
   out1.close();
+
+  //Output the result (.dat for matlab)
+  char file2[100];
+  sprintf(file2,"SYSTEM_0_FULL_MODEL/RESLT_DIFFUSION_0._05/step%i.dat",i+1);
+  ofstream out2(file2);
+  Bulk_mesh_pt->output(out2,5);
+  out2.close();
  }
 
 }
@@ -862,14 +929,45 @@ unsteady_newton_solve(Dt);
 /// - R_{i}(C_{j},\frac{\partial C_j}{\partial x_k}) - fct_{i}
 /// \f]
 
-int main()
+int main(int argc, char **argv)
 {
- //Set the timestep
- double dt = 0.002;
- GlobalVariables::timestep=dt;
+ double dt;
+ /*
+ //---------------------------------------------
+ // Command line flags to assign variable values
+ //---------------------------------------------
+ // Store command line arguments
+ CommandLineArgs::setup(argc,argv);
 
+ // Diffusivity
+ CommandLineArgs::specify_command_line_flag("--diffusivity",&GlobalVariables::diffusivity);
+ 
+ // Timestep
+ CommandLineArgs::specify_command_line_flag("--dt",&dt);
+
+ // Parse command line
+ CommandLineArgs::parse_and_assign();
+
+ // Doc what has actually been specified on the command line
+ CommandLineArgs::doc_specified_flags();
+
+ //Set GlobalVariables::timestep
+ GlobalVariables::timestep=dt;
+ */
+
+
+ 
+ //Set Diffusivity
+ GlobalVariables::diffusivity=0.05;
+ dt=GlobalVariables::diffusivity/25;
+  //Set GlobalVariables::timestep
+ GlobalVariables::timestep=dt;
+ 
+ // Update parameters
+ GlobalVariables::update_parameters();
+ 
  //Set the number of timesteps to be taken
- unsigned nstep=2000;
+ unsigned nstep=750;
  
  //Set up the problem
  //------------------

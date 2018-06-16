@@ -144,9 +144,9 @@ namespace oomph
      for(unsigned j=0;j<DIM;j++)
      {
       interpolated_dcdx(r,j) += c_value*dpsidx(l,j);
-     }
-    }
-   }
+     }// End of loop over directions
+    }// End of loop over reagents
+   }//End of loop over nodes
   
    // Mesh velocity?
    if (!ALE_is_disabled)
